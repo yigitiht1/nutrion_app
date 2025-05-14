@@ -1,9 +1,13 @@
 using API.DTOs;
 using API.Models;
+using System.Threading.Tasks;
 
-public interface IUserProfileService
+namespace API.Services
 {
-    Task CreateUserProfileAsync(UserProfileDto dto);
-    Task<UserProfile?> GetUserProfileByUserIdAsync(int userId);
-    Task UpdateUserProfileAsync(int userId, UserProfileDto dto);
+    public interface IUserProfile
+    {
+        Task CreateUserProfileAsync(UserProfileDto dto);
+        Task<UserProfile?> GetUserProfileByUserIdAsync(int userId);
+        Task UpdateUserProfileAsync(int userId, UserProfileDto dto);
+    }
 }

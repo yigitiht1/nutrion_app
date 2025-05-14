@@ -1,6 +1,9 @@
 using API.Data;
 using API.Models;
+using API.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace API.Repositories
 {
@@ -13,27 +16,27 @@ namespace API.Repositories
             _context = context;
         }
 
-        public User? GetUserByEmail(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return _context.Users.FirstOrDefault(u => u.Email == email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public void AddUser(User user)
+        public async Task AddUserAsync(User user)
         {
-            _context.Users.Add(user);
+            await _context.Users.AddAsync(user);
         }
 
-        public void SaveChanges()
+        public async Task SaveChangesAsync()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<List<User>> GetAllUsers()
+        public async Task<List<User>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<User?> GetUserById(int id)
+        public async Task<User?> GetUserByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
         }

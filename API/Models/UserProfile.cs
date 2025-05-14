@@ -4,12 +4,16 @@ namespace API.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-
-        public string Gender { get; set; } = string.Empty;
+        public int Height { get; set; }
+        public int Weight { get; set; }
         public int Age { get; set; }
-        public double Height { get; set; } // cm
-        public double Weight { get; set; } // kg
+        public string? Gender { get; set; }
 
-        public User? User { get; set; } // Navigation property
+        // Hesaplama fonksiyonu ekleyebilirsiniz
+        public decimal CalculateCaloricNeeds()
+        {
+            // Burada kalori hesaplaması yapabilirsiniz.
+            return 2000m; // Basit bir değer.
+        }
     }
 }

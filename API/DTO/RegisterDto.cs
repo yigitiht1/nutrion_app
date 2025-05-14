@@ -1,17 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
-public class RegisterDto
+namespace API.DTOs
 {
-    [Required]
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [Required]
-    [JsonPropertyName("email")]
-    public string Email { get; set; } = string.Empty;
-
-    [Required]
-    [JsonPropertyName("password")]
-    public string Password { get; set; } = string.Empty;
+    public class RegisterDto
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 }

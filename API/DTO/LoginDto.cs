@@ -1,5 +1,8 @@
-public class LoginDto
+namespace API.DTOs
 {
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty; // Nullable olmamalı
+    public class LoginDto
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 }

@@ -1,5 +1,7 @@
+using API.DTOs;
 using API.Models;
 using API.Repositories;
+using System.Threading.Tasks;
 
 namespace API.Services
 {
@@ -12,33 +14,33 @@ namespace API.Services
             _userRepository = userRepository;
         }
 
-        public bool Register(User user)
+        public async Task<bool> RegisterAsync(RegisterDto dto)
         {
-            if (_userRepository.GetUserByEmail(user.Email) != null)
+            var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+            if (existingUser != null)
                 return false;
 
-            _userRepository.AddUser(user);
-            _userRepository.SaveChanges();
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = dto.Email
+            };
+            user.SetPassword(dto.Password);  // Şifreyi hash'le
+
+            await _userRepository.AddUserAsync(user);
+            await _userRepository.SaveChangesAsync();
+
             return true;
         }
 
-        public User? Login(string email, string password)
+        public async Task<User?> LoginAsync(string email, string password)
         {
-            var user = _userRepository.GetUserByEmail(email);
-            if (user == null || !user.VerifyPassword(password)) // Şifre doğrulama
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null || !user.VerifyPassword(password))  // Şifreyi doğrula
                 return null;
 
             return user;
         }
-
-        public async Task<List<User>> GetAllUsers()
-        {
-            return await _userRepository.GetAllUsers();
-        }
-
-        public async Task<User?> GetUserById(int id)
-        {
-            return await _userRepository.GetUserById(id);
-        }
+        
     }
 }

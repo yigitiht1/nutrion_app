@@ -1,12 +1,12 @@
+using API.DTOs;
 using API.Models;
+using System.Threading.Tasks;
 
 namespace API.Services
 {
     public interface IUserService
     {
-        bool Register(User user);
-        User? Login(string email, string password);
-        Task<List<User>> GetAllUsers();
-        Task<User?> GetUserById(int id);
+        Task<bool> RegisterAsync(RegisterDto dto);
+        Task<User?> LoginAsync(string email, string password);
     }
 }

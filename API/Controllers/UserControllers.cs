@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Models;
 using API.Services;
 using API.DTOs;
 
@@ -10,64 +9,50 @@ namespace API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IUserProfile _userProfileService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IUserProfile userProfileService)
         {
             _userService = userService;
-        }   
-
-           [HttpGet("all")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var users = await _userService.GetAllUsers();
-            var userDtos = users.Select(u => new UserDto
-            {
-                Name = u.Name,
-                Email = u.Email
-            }).ToList();
-
-            return Ok(userDtos);
-        }
-
-          [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
-        {
-            var user = await _userService.GetUserById(id);
-            if (user == null)
-                return NotFound(new { message = "Kullanıcı bulunamadı." });
-
-            return Ok(new UserDto { Name = user.Name, Email = user.Email });
+            _userProfileService = userProfileService;
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            var user = new User
-            {
-                Name = registerDto.Name,
-                Email = registerDto.Email
-            };
-            user.SetPassword(registerDto.Password);
+            var success = await _userService.RegisterAsync(registerDto);
+            if (!success)
+                return BadRequest(new { message = "Bu email zaten kayıtlı!" });
 
-            if (_userService.Register(user))
-                return Ok(new { message = "Kullanıcı başarıyla kaydedildi." });
-
-            return BadRequest(new { message = "Bu email zaten kayıtlı!" });
+            return Ok(new { message = "Kullanıcı başarıyla kaydedildi." });
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var loggedInUser = _userService.Login(loginDto.Email, loginDto.Password);
-            if (loggedInUser == null)
+            var user = await _userService.LoginAsync(loginDto.Email, loginDto.Password);
+            if (user == null)
                 return Unauthorized(new { message = "Geçersiz email veya şifre." });
 
-            return Ok(new { message = "Giriş başarılı.", userId = loggedInUser.Id });
+            return Ok(new { message = "Giriş başarılı.", userId = user.Id });
         }
 
-     
+        [HttpPut("{userId}/profile")]
+        public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
+        {
+            var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+            if (existingProfile == null)
+            {
+                dto.UserId = userId;
+                await _userProfileService.CreateUserProfileAsync(dto);
+                return Ok(new { message = "Profil oluşturuldu." });
+            }
+            else
+            {
+                await _userProfileService.UpdateUserProfileAsync(userId, dto);
+                return Ok(new { message = "Profil güncellendi." });
+            }
+        }
         
-
-      
     }
 }

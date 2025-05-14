@@ -1,4 +1,5 @@
 using API.Data;
+using API.Models;
 using API.Repositories;
 using API.Services;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Bağımlılıkları ekle
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserProfile, UserProfileService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
 builder.Services.AddScoped<IMealService, MealService>();
 

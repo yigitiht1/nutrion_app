@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250416140026_InitialCreate")]
+    [Migration("20250514135818_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -37,9 +37,6 @@ namespace API.Migrations
                     b.Property<double>("Fat")
                         .HasColumnType("double");
 
-                    b.Property<int?>("MealId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -48,8 +45,6 @@ namespace API.Migrations
                         .HasColumnType("double");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MealId");
 
                     b.ToTable("Foods");
                 });
@@ -73,6 +68,30 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Meals");
+                });
+
+            modelBuilder.Entity("API.Models.MealItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("FoodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex("MealId");
+
+                    b.ToTable("MealItems");
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
@@ -108,46 +127,44 @@ namespace API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Gender")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<double>("Height")
-                        .HasColumnType("double");
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Weight")
-                        .HasColumnType("double");
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("API.Models.Food", b =>
+            modelBuilder.Entity("API.Models.MealItem", b =>
                 {
-                    b.HasOne("API.Models.Meal", null)
-                        .WithMany("Foods")
-                        .HasForeignKey("MealId");
-                });
-
-            modelBuilder.Entity("API.Models.UserProfile", b =>
-                {
-                    b.HasOne("API.Models.User", "User")
+                    b.HasOne("API.Models.Food", "Food")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("FoodId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("API.Models.Meal", "Meal")
+                        .WithMany("MealItems")
+                        .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Food");
+
+                    b.Navigation("Meal");
                 });
 
             modelBuilder.Entity("API.Models.Meal", b =>
                 {
-                    b.Navigation("Foods");
+                    b.Navigation("MealItems");
                 });
 #pragma warning restore 612, 618
         }

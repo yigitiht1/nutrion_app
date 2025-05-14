@@ -14,16 +14,16 @@ public class MealService : IMealService
 
     public async Task AddMealAsync(MealDto dto)
     {
-        var foods = await _context.Foods
-            .Where(f => dto.FoodIds.Contains(f.Id))
-            .ToListAsync();
-
         var meal = new Meal
         {
             UserId = dto.UserId,
             MealType = dto.MealType,
             Date = dto.Date,
-            Foods = foods
+            MealItems = dto.MealItems.Select(i => new MealItem
+            {
+                FoodId = i.FoodId,
+                Quantity = i.Quantity
+            }).ToList()
         };
 
         _context.Meals.Add(meal);
@@ -33,7 +33,8 @@ public class MealService : IMealService
     public async Task<List<Meal>> GetMealsByUserAsync(int userId)
     {
         return await _context.Meals
-            .Include(m => m.Foods)
+            .Include(m => m.MealItems)
+            .ThenInclude(mi => mi.Food)
             .Where(m => m.UserId == userId)
             .ToListAsync();
     }
