@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Models;
-using API.Services;
-using API.DTOs;
-
-namespace API.Controllers
-{
-    using global::API.Data;
-    using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using API.DTOs;
+using API.Services;
+using API.Data;
+using API.Models;
 
 namespace API.Controllers
 {
@@ -70,6 +66,68 @@ namespace API.Controllers
                 TotalCaloriesToday = totalCalories
             });
         }
+        [HttpGet("daily/{userId}/{date}")]
+        public async Task<IActionResult> GetMealsByDate(int userId, DateTime date)
+        {
+            var meals = await _context.Meals
+                .Include(m => m.MealItems)
+                .ThenInclude(mi => mi.Food)
+                .Where(m => m.UserId == userId && m.Date.Date == date.Date)
+                .ToListAsync();
+
+            var response = meals.Select(m => new
+            {
+                m.MealType,
+                Foods = m.MealItems.Select(i => new
+                {
+                    i.Food.Name,
+                    i.Food.Calories,
+                    i.Food.Protein,
+                    i.Food.Fat,
+                    i.Food.Carbs,
+                    i.Quantity
+                }),
+                TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity)
+            });
+
+            int totalCalories = (int)meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity);
+
+            return Ok(new
+            {
+                Meals = response,
+                TotalCalories = totalCalories
+            });
+        }
+[HttpGet("history/{userId}")]
+public async Task<IActionResult> GetMealHistory(int userId, DateTime startDate, DateTime endDate)
+{
+    var meals = await _context.Meals
+        .Include(m => m.MealItems)
+        .ThenInclude(mi => mi.Food)
+        .Where(m => m.UserId == userId && m.Date.Date >= startDate.Date && m.Date.Date <= endDate.Date)
+        .ToListAsync();
+
+    var groupedByDate = meals
+        .GroupBy(m => m.Date.Date)
+        .Select(g => new {
+            Date = g.Key,
+            Meals = g.Select(m => new {
+                m.MealType,
+                Foods = m.MealItems.Select(i => new {
+                    i.Food.Name,
+                    i.Food.Calories,
+                    i.Food.Protein,
+                    i.Food.Fat,
+                    i.Food.Carbs,
+                    i.Quantity
+                }),
+                TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity)
+            }),
+            TotalCalories = g.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity)
+        });
+
+    return Ok(groupedByDate);
+}
 
         [HttpPost("recognize")]
         public async Task<IActionResult> RecognizeAndAssignFood([FromBody] RecognizeFoodDto dto)
@@ -116,5 +174,4 @@ namespace API.Controllers
             });
         }
     }
-}
 }

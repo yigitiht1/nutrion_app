@@ -53,6 +53,19 @@ namespace API.Controllers
                 return Ok(new { message = "Profil güncellendi." });
             }
         }
+        [HttpGet("{userId}/bmi-calories")]
+        public async Task<IActionResult> GetBmiAndCalorie(int userId, [FromQuery] int totalCaloriesToday)
+        {
+            try
+            {
+                var result = await _userService.CalculateBmiAndCalorieAsync(userId, totalCaloriesToday);
+                 return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                    return NotFound(new { message = ex.Message });
+            }
+        }
         
     }
 }
