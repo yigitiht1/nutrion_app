@@ -19,6 +19,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserProfile, UserProfileService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
 builder.Services.AddScoped<IMealService, MealService>();
+builder.Services.AddScoped<ICalorieService, CalorieService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

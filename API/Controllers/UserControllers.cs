@@ -10,12 +10,20 @@ namespace API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IUserProfile _userProfileService;
+        private readonly ICalorieService _calorieService;
 
-        public UserController(IUserService userService, IUserProfile userProfileService)
+        public UserController(IUserService userService, IUserProfile userProfileService, ICalorieService calorieService)
         {
-            _userService = userService;
+             _userService = userService;
             _userProfileService = userProfileService;
+            _calorieService = calorieService;
         }
+            [HttpGet("all")]
+            public async Task<IActionResult> GetAllUsers()
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users);
+            }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
@@ -59,13 +67,31 @@ namespace API.Controllers
             try
             {
                 var result = await _userService.CalculateBmiAndCalorieAsync(userId, totalCaloriesToday);
-                 return Ok(result);
+                return Ok(result);
             }
             catch (ArgumentException ex)
             {
-                    return NotFound(new { message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
         }
+        [HttpPost("{userId}/calorie-goal")]
+public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
+{
+    if (userId != goalDto.UserId)
+        return BadRequest("Kullanıcı ID'si eşleşmiyor.");
+
+    try
+    {
+        var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
+        return Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+        
+
         
     }
 }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250606134510_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250607141557_RailwayDbUpdate")]
+    partial class RailwayDbUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -131,8 +131,7 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.UserProfile", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.Property<int>("Age")
@@ -144,13 +143,10 @@ namespace API.Migrations
                     b.Property<int>("Height")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Weight")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId");
 
                     b.ToTable("UserProfiles");
                 });
@@ -172,6 +168,17 @@ namespace API.Migrations
                     b.Navigation("Food");
 
                     b.Navigation("Meal");
+                });
+
+            modelBuilder.Entity("API.Models.UserProfile", b =>
+                {
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("API.Models.Meal", b =>

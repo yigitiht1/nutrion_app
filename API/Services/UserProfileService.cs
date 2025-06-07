@@ -1,7 +1,8 @@
-using API.Data;
 using API.DTOs;
 using API.Models;
+using API.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace API.Services
 {
@@ -16,7 +17,7 @@ namespace API.Services
 
         public async Task CreateUserProfileAsync(UserProfileDto dto)
         {
-            var profile = new UserProfile
+            var userProfile = new UserProfile
             {
                 UserId = dto.UserId,
                 Height = dto.Height,
@@ -25,25 +26,24 @@ namespace API.Services
                 Gender = dto.Gender
             };
 
-            _context.UserProfiles.Add(profile);
+            await _context.UserProfiles.AddAsync(userProfile);
             await _context.SaveChangesAsync();
         }
 
         public async Task<UserProfile?> GetUserProfileByUserIdAsync(int userId)
         {
-            return await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            return await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
         }
 
         public async Task UpdateUserProfileAsync(int userId, UserProfileDto dto)
         {
-            var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-            if (profile == null)
-                throw new Exception("Profil bulunamadı.");
+            var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
+            if (userProfile == null) return;
 
-            profile.Height = dto.Height;
-            profile.Weight = dto.Weight;
-            profile.Age = dto.Age;
-            profile.Gender = dto.Gender;
+            userProfile.Height = dto.Height;
+            userProfile.Weight = dto.Weight;
+            userProfile.Age = dto.Age;
+            userProfile.Gender = dto.Gender;
 
             await _context.SaveChangesAsync();
         }
