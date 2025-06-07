@@ -1,8 +1,8 @@
-using API.DTOs;
 using API.Models;
 
 public interface IFoodService
 {
-    Task AddFoodAsync(FoodDto dto);
-    Task<List<Food>> GetAllFoodsAsync();
+    Task<List<FoodDto>> GetAllFoodsAsync(); // DTO dönmeli
+    Task<List<FoodDto>> GetFoodsByMealTypeAsync(MealType mealType);
+    Task AddFoodAsync(FoodDto foodDto);
 }

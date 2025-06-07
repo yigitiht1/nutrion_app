@@ -11,24 +11,19 @@ namespace API.Data{
         public DbSet<MealItem> MealItems { get; set; }
         public DbSet<Food> Foods { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
-        public DbSet<Exercise> Exercises { get; set; }
-        public DbSet<UserExercise> UserExercises { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<FoodMealType> FoodMealTypes { get; set; }
+       
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
-    base.OnModelCreating(modelBuilder);
+    modelBuilder.Entity<FoodMealType>()
+        .HasKey(fm => new { fm.FoodId, fm.MealType });
 
-    modelBuilder.Entity<UserExercise>()
-        .HasOne(ue => ue.User)
-        .WithMany(u => u.UserExercises)
-        .HasForeignKey(ue => ue.UserId)
-        .OnDelete(DeleteBehavior.Cascade);
+    modelBuilder.Entity<FoodMealType>()
+        .HasOne(fm => fm.Food)
+        .WithMany(f => f.FoodMealTypes)
+        .HasForeignKey(fm => fm.FoodId);
+}
 
-    modelBuilder.Entity<UserExercise>()
-        .HasOne(ue => ue.Exercise)
-        .WithMany(e => e.UserExercises)
-        .HasForeignKey(ue => ue.ExerciseId)
-        .OnDelete(DeleteBehavior.Cascade);
-}   
+  
 }
 }

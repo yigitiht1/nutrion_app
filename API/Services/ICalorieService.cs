@@ -1,7 +1,7 @@
 using API.DTOs;
-using System.Threading.Tasks;
 
 public interface ICalorieService
 {
-    Task<CalorieGoalResultDto> CalculateCalorieGoalAsync(GoalDto goalDto);
+    Task<string> CalculateCalorieGoalAsync(GoalDto goalDto);
+    Task<BmiAndCalorieDto> CalculateBmiAndCalorieAsync(int userId, int totalCaloriesToday);
 }

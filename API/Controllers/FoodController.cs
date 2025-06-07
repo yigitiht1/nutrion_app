@@ -1,30 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Models;
 using API.Services;
 using API.DTOs;
+using API.Models;
 
-namespace API.Controllers
-{
-    [ApiController]
+[ApiController]
 [Route("api/[controller]")]
 public class FoodController : ControllerBase
 {
     private readonly IFoodService _foodService;
-    public FoodController(IFoodService foodService) => _foodService = foodService;
-    
-    [HttpGet]
-    public async Task<IActionResult> GetAllFoods()
+
+    public FoodController(IFoodService foodService)
     {
-        var foods = await _foodService.GetAllFoodsAsync();
+        _foodService = foodService;
+    }
+
+ [HttpGet]
+public async Task<IActionResult> GetAllFoods()
+{
+    var foods = await _foodService.GetAllFoodsAsync();
+    return Ok(foods);
+}
+
+    // Öğün tipine göre yiyecekleri getir
+    [HttpGet("meal/{mealType}")]
+    public async Task<IActionResult> GetFoodsByMealType(string mealType)
+    {
+        if (!Enum.TryParse<MealType>(mealType, true, out var parsedMealType))
+        {
+            return BadRequest("Geçersiz meal type.");
+        }
+
+        var foods = await _foodService.GetFoodsByMealTypeAsync(parsedMealType);
         return Ok(foods);
     }
+
     [HttpPost]
     public async Task<IActionResult> AddFood(FoodDto foodDto)
     {
         await _foodService.AddFoodAsync(foodDto);
         return Ok(new { message = "Yemek eklendi." });
     }
-
-   
-}
 }

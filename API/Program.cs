@@ -20,8 +20,8 @@ builder.Services.AddScoped<IUserProfile, UserProfileService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
 builder.Services.AddScoped<IMealService, MealService>();
 builder.Services.AddScoped<ICalorieService, CalorieService>();
-builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
-builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<ICalorieRecommendationService, CalorieRecommendationService>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -19,24 +19,6 @@ namespace API.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("API.Models.Exercise", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<double>("CaloriesBurnedPerMinute")
-                        .HasColumnType("double");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Exercises");
-                });
-
             modelBuilder.Entity("API.Models.Food", b =>
                 {
                     b.Property<int>("Id")
@@ -62,6 +44,19 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Foods");
+                });
+
+            modelBuilder.Entity("API.Models.FoodMealType", b =>
+                {
+                    b.Property<int>("FoodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealType")
+                        .HasColumnType("int");
+
+                    b.HasKey("FoodId", "MealType");
+
+                    b.ToTable("FoodMealTypes");
                 });
 
             modelBuilder.Entity("API.Models.Meal", b =>
@@ -144,53 +139,50 @@ namespace API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("API.Models.UserExercise", b =>
+            modelBuilder.Entity("UserProfile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("DurationMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExerciseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExerciseId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserExercises");
-                });
-
-            modelBuilder.Entity("API.Models.UserProfile", b =>
-                {
-                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
                     b.Property<string>("Gender")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Height")
+                    b.Property<double>("Height")
+                        .HasColumnType("double");
+
+                    b.Property<int>("TargetDays")
                         .HasColumnType("int");
 
-                    b.Property<int>("Weight")
+                    b.Property<double>("TargetWeight")
+                        .HasColumnType("double");
+
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId");
+                    b.Property<double>("Weight")
+                        .HasColumnType("double");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserProfiles");
+                });
+
+            modelBuilder.Entity("API.Models.FoodMealType", b =>
+                {
+                    b.HasOne("API.Models.Food", "Food")
+                        .WithMany("FoodMealTypes")
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Food");
                 });
 
             modelBuilder.Entity("API.Models.MealItem", b =>
@@ -212,26 +204,7 @@ namespace API.Migrations
                     b.Navigation("Meal");
                 });
 
-            modelBuilder.Entity("API.Models.UserExercise", b =>
-                {
-                    b.HasOne("API.Models.Exercise", "Exercise")
-                        .WithMany("UserExercises")
-                        .HasForeignKey("ExerciseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Models.User", "User")
-                        .WithMany("UserExercises")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Exercise");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Models.UserProfile", b =>
+            modelBuilder.Entity("UserProfile", b =>
                 {
                     b.HasOne("API.Models.User", "User")
                         .WithMany()
@@ -242,19 +215,14 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("API.Models.Exercise", b =>
+            modelBuilder.Entity("API.Models.Food", b =>
                 {
-                    b.Navigation("UserExercises");
+                    b.Navigation("FoodMealTypes");
                 });
 
             modelBuilder.Entity("API.Models.Meal", b =>
                 {
                     b.Navigation("MealItems");
-                });
-
-            modelBuilder.Entity("API.Models.User", b =>
-                {
-                    b.Navigation("UserExercises");
                 });
 #pragma warning restore 612, 618
         }

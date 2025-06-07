@@ -1,5 +1,13 @@
 namespace API.Models
 {
+    public enum MealType
+    {
+        Breakfast,
+        Lunch,
+        Dinner,
+        Snack
+    }
+
     public class Food
     {
         public int Id { get; set; }
@@ -8,5 +16,15 @@ namespace API.Models
         public double Protein { get; set; }
         public double Carbs { get; set; }
         public double Fat { get; set; }
+
+        public List<FoodMealType> FoodMealTypes { get; set; } = new();
+    }
+
+    public class FoodMealType
+    {
+        public int FoodId { get; set; }
+        public Food Food { get; set; }
+
+        public MealType MealType { get; set; }
     }
 }
