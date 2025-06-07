@@ -15,14 +15,7 @@ namespace API.Controllers
         {
             _userProfileService = userProfileService;
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateUserProfile([FromBody] UserProfileDto dto)
-        {
-            await _userProfileService.CreateUserProfileAsync(dto);
-            return Ok(new { message = "Profil oluşturuldu." });
-        }
-
+        
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetProfile(int userId)
         {
@@ -32,6 +25,15 @@ namespace API.Controllers
 
             return Ok(profile);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUserProfile([FromBody] UserProfileDto dto)
+        {
+            await _userProfileService.CreateUserProfileAsync(dto);
+            return Ok(new { message = "Profil oluşturuldu." });
+        }
+
+       
 
         [HttpPut("{userId}")]
         public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UserProfileDto dto)

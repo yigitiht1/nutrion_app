@@ -20,12 +20,6 @@ namespace API.Controllers
             _context = context;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddMeal(MealDto mealDto)
-        {
-            await _mealService.AddMealAsync(mealDto);
-            return Ok(new { message = "Öğün eklendi." });
-        }
 
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetMealsByUser(int userId)
@@ -48,7 +42,8 @@ namespace API.Controllers
             var response = meals.Select(m => new
             {
                 m.MealType,
-                Foods = m.MealItems.Select(i => new {
+                Foods = m.MealItems.Select(i => new
+                {
                     i.Food.Name,
                     i.Food.Calories,
                     i.Food.Protein,
@@ -61,7 +56,8 @@ namespace API.Controllers
 
             int totalCalories = (int)meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity);
 
-            return Ok(new {
+            return Ok(new
+            {
                 Meals = response,
                 TotalCaloriesToday = totalCalories
             });
@@ -98,36 +94,39 @@ namespace API.Controllers
                 TotalCalories = totalCalories
             });
         }
-[HttpGet("history/{userId}")]
-public async Task<IActionResult> GetMealHistory(int userId, DateTime startDate, DateTime endDate)
-{
-    var meals = await _context.Meals
-        .Include(m => m.MealItems)
-        .ThenInclude(mi => mi.Food)
-        .Where(m => m.UserId == userId && m.Date.Date >= startDate.Date && m.Date.Date <= endDate.Date)
-        .ToListAsync();
+        [HttpGet("history/{userId}")]
+        public async Task<IActionResult> GetMealHistory(int userId, DateTime startDate, DateTime endDate)
+        {
+            var meals = await _context.Meals
+                .Include(m => m.MealItems)
+                .ThenInclude(mi => mi.Food)
+                .Where(m => m.UserId == userId && m.Date.Date >= startDate.Date && m.Date.Date <= endDate.Date)
+                .ToListAsync();
 
-    var groupedByDate = meals
-        .GroupBy(m => m.Date.Date)
-        .Select(g => new {
-            Date = g.Key,
-            Meals = g.Select(m => new {
-                m.MealType,
-                Foods = m.MealItems.Select(i => new {
-                    i.Food.Name,
-                    i.Food.Calories,
-                    i.Food.Protein,
-                    i.Food.Fat,
-                    i.Food.Carbs,
-                    i.Quantity
-                }),
-                TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity)
-            }),
-            TotalCalories = g.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity)
-        });
+            var groupedByDate = meals
+                .GroupBy(m => m.Date.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Meals = g.Select(m => new
+                    {
+                        m.MealType,
+                        Foods = m.MealItems.Select(i => new
+                        {
+                            i.Food.Name,
+                            i.Food.Calories,
+                            i.Food.Protein,
+                            i.Food.Fat,
+                            i.Food.Carbs,
+                            i.Quantity
+                        }),
+                        TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity)
+                    }),
+                    TotalCalories = g.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity)
+                });
 
-    return Ok(groupedByDate);
-}
+            return Ok(groupedByDate);
+        }
 
         [HttpPost("recognize")]
         public async Task<IActionResult> RecognizeAndAssignFood([FromBody] RecognizeFoodDto dto)
@@ -173,5 +172,12 @@ public async Task<IActionResult> GetMealHistory(int userId, DateTime startDate, 
                 food = new { food.Name, food.Calories }
             });
         }
+        [HttpPost]
+        public async Task<IActionResult> AddMeal(MealDto mealDto)
+        {
+            await _mealService.AddMealAsync(mealDto);
+            return Ok(new { message = "Öğün eklendi." });
+        }
+
     }
 }

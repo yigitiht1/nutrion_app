@@ -11,7 +11,13 @@ public class FoodController : ControllerBase
 {
     private readonly IFoodService _foodService;
     public FoodController(IFoodService foodService) => _foodService = foodService;
-
+    
+    [HttpGet]
+    public async Task<IActionResult> GetAllFoods()
+    {
+        var foods = await _foodService.GetAllFoodsAsync();
+        return Ok(foods);
+    }
     [HttpPost]
     public async Task<IActionResult> AddFood(FoodDto foodDto)
     {
@@ -19,11 +25,6 @@ public class FoodController : ControllerBase
         return Ok(new { message = "Yemek eklendi." });
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAllFoods()
-    {
-        var foods = await _foodService.GetAllFoodsAsync();
-        return Ok(foods);
-    }
+   
 }
 }
