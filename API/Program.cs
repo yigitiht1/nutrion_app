@@ -27,12 +27,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Middleware'leri ekle
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseAuthorization();
 app.MapControllers();
