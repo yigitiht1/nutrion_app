@@ -59,7 +59,7 @@ namespace API.Controllers
         }
 
       
-        [HttpPost("{userId}/calorie-goal")]
+            [HttpPost("{userId}/calorie-goal")]
         public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
         {
             if (userId != goalDto.UserId)
@@ -75,7 +75,6 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
         [HttpPut("{userId}/profile")]
         public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
         {
