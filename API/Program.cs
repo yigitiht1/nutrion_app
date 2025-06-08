@@ -27,6 +27,7 @@ builder.Services.AddScoped<IMealPlanService, MealPlanService>();
 
 
 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

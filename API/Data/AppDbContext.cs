@@ -13,8 +13,8 @@ namespace API.Data{
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<FoodMealType> FoodMealTypes { get; set; }
         public DbSet<Activity> Activities { get; set; }
-        public DbSet<MealPlan> MealPlans { get; set; }
-        public DbSet<MealPlanItem> MealPlanItems { get; set; }
+
+
         
        
     protected override void OnModelCreating(ModelBuilder modelBuilder)
