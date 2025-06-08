@@ -8,7 +8,7 @@ public class RecommendationDto
     public List<RecommendedFoodDto> RecommendedFoods { get; set; } = new();
     public List<ActivityDto> RecommendedActivities { get; set; } = new();
 
-    // Yeni eklenen alan
+
     public string AlertMessage { get; set; } = string.Empty;
 }
 

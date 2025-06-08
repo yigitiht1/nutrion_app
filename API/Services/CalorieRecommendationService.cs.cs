@@ -192,23 +192,30 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                 };
             }
 
-            return new RecommendationDto
+          return new RecommendationDto
+        {
+            CalorieDifference = difference, // Pozitif/negatif farkı gösterir
+            RecommendationType = difference < 0 ? "Deficit" : "Surplus",
+            TotalProtein = totalProteinToday,
+            TotalCarbs = totalCarbsToday,
+            TotalFat = totalFatToday,
+            RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
             {
-                CalorieDifference = difference, // Pozitif/negatif farkı gösterir
-                RecommendationType = difference < 0 ? "Deficit" : "Surplus",
-                TotalProtein = totalProteinToday,
-                TotalCarbs = totalCarbsToday,
-                TotalFat = totalFatToday,
-                RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
-                {
-                    Name = f.Name,
-                    Calories = f.Calories,
-                    Protein = f.Protein,
-                    Carbs = f.Carbs,
-                    Fat = f.Fat
-                }).ToList(),
-                RecommendedActivities = recommendedActivities
-            };
+                Name = f.Name,
+                Calories = f.Calories,
+                Protein = f.Protein,
+                Carbs = f.Carbs,
+                Fat = f.Fat
+            }).ToList(),
+            RecommendedActivities = recommendedActivities,
+            AlertMessage = difference < 0
+                ? (Math.Abs(difference) > 500
+                    ? "Büyük bir kalori açığınız var, beslenmenize dikkat edin."
+                    : "Kalori açığınız var, önerilen yiyecekleri tüketebilirsiniz.")
+                : (difference > 500
+                    ? "Kalori fazlalığınız yüksek, önerilen aktiviteleri yaparak dengeleyin."
+                    : "Bir miktar kalori fazlanız var, hareket etmeye devam edin.")
+        };
         }
         catch (Exception ex)
         {
