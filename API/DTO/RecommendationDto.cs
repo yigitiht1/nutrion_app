@@ -2,13 +2,14 @@ namespace API.DTOs
 {
     public class RecommendationDto
     {
-        public double CalorieDifference { get; set; }
-        public string RecommendationType { get; set; } = string.Empty;
+        public int CalorieDifference { get; set; }
+        public string RecommendationType { get; set; } // "Calorie Deficit" veya "Calorie Surplus"
         public double TotalProtein { get; set; }
         public double TotalCarbs { get; set; }
         public double TotalFat { get; set; }
-        public List<RecommendedFoodDto> RecommendedFoods { get; set; } = new();
+        public List<RecommendedFoodDto> RecommendedFoods { get; set; }
     }
+}
 
     public class RecommendedFoodDto
     {
@@ -18,4 +19,3 @@ namespace API.DTOs
         public double Carbs { get; set; }
         public double Fat { get; set; }
     }
-}

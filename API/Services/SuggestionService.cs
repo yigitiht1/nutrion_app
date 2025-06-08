@@ -1,40 +1,43 @@
-using API.Models;
-using System.Linq;
-using System.Threading.Tasks;
+using API.Services;
 
-namespace API.Services
+public interface ISuggestionService
 {
-    public class SuggestionService : ISuggestionService
+    Task<string> GetSuggestionAsync(int userId);
+}
+
+public class SuggestionService : ISuggestionService
+{
+    private readonly IUserProfile _userProfile;
+    private readonly IActivityService _activityService;
+
+    public SuggestionService(IUserProfile userProfile, IActivityService activityService)
     {
-        private readonly IUserProfile _userProfileService;
-        private readonly IActivityService _activityService;
+        _userProfile = userProfile;
+        _activityService = activityService;
+    }
 
-        public SuggestionService(IUserProfile userProfileService, IActivityService activityService)
-        {
-            _userProfileService = userProfileService;
-            _activityService = activityService;
-        }
+    public async Task<string> GetSuggestionAsync(int userId)
+    {
+        var profile = await _userProfile.GetUserProfileByUserIdAsync(userId);
+        if (profile == null) return "Kullanıcı profili bulunamadı.";
 
-        public async Task<string> GetSuggestionAsync(int userId)
-        {
-            var profile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
-            if (profile == null)
-                return "Kullanıcı profili bulunamadı.";
+        var today = DateTime.Today;
+        var activities = (await _activityService.GetActivitiesByUserIdAsync(userId))
+                            .Where(a => a.Date.Date == today)
+                            .ToList();
 
-            var activities = await _activityService.GetActivitiesByUserIdAsync(userId);
-            double caloriesBurned = activities.Sum(a => a.CaloriesBurned);
-            double recommendedCalories = profile.CalculateRecommendedCalories();
-            double calorieDifference = recommendedCalories - caloriesBurned;
+        double caloriesBurned = activities.Sum(a => a.CaloriesBurned);
+        double recommendedCalories = profile.CalculateRecommendedCalories();
+        double calorieDifference = recommendedCalories - caloriesBurned;
 
-            double bmi = profile.CalculateBMI();
-            string bmiCategory = profile.GetBMICategory(bmi);
+        double bmi = profile.CalculateBMI();
+        string bmiCategory = profile.GetBMICategory(bmi);
 
-            if (calorieDifference > 500)
-                return $"Kilo vermek için kalori açığınız yeterince yüksek değil. Daha fazla egzersiz yapabilirsiniz. (BMI: {bmiCategory})";
-            else if (calorieDifference < -500)
-                return $"Kilo almak için kalori fazlanız yüksek, beslenmenizi takip edin. (BMI: {bmiCategory})";
-            else
-                return $"Kalori hedefinize uygunsunuz, mevcut rutininize devam edin. (BMI: {bmiCategory})";
-        }
+        if (calorieDifference > 500)
+            return $"Kalori açığınız düşük. Daha fazla egzersiz yapabilirsiniz. (BMI: {bmiCategory})";
+        else if (calorieDifference < -500)
+            return $"Kalori fazlanız fazla. Beslenmenizi gözden geçirin. (BMI: {bmiCategory})";
+        else
+            return $"Harika! Kalori dengeniz yerinde. (BMI: {bmiCategory})";
     }
 }

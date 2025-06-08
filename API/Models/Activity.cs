@@ -1,22 +1,13 @@
-using System.ComponentModel.DataAnnotations;
+using API.Models;
 
-namespace API.Models
+public class Activity
 {
-    public class Activity
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Type { get; set; } // örneğin: "koşu", "yüzme"
+    public double DurationInMinutes { get; set; } 
+    public double CaloriesBurned { get; set; }
+    public DateTime Date { get; set; }
 
-        [Required]
-        public string Name { get; set; } = string.Empty; // Örn: "Yürüyüş", "Koşu"
-
-        [Required]
-        public double CaloriesBurned { get; set; } // Yaktığı kalori
-
-        [Required]
-        public DateTime Date { get; set; }
-
-        // Kullanıcı ile ilişki
-        public int UserId { get; set; }
-        public User User { get; set; } = null!;
-    }
+    public User User { get; set; }
 }
