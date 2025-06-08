@@ -128,17 +128,64 @@ namespace API.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    DurationInMinutes = table.Column<double>(type: "double", nullable: false),
                     CaloriesBurned = table.Column<double>(type: "double", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Activities", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Activities_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Goals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    TargetWeight = table.Column<double>(type: "double", nullable: false),
+                    TargetDays = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Goals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Goals_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "MealPlans",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    TargetCalories = table.Column<double>(type: "double", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MealPlans", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MealPlans_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -173,9 +220,49 @@ namespace API.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "MealPlanItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MealPlanId = table.Column<int>(type: "int", nullable: false),
+                    MealPlanId1 = table.Column<int>(type: "int", nullable: false),
+                    FoodId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MealPlanItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MealPlanItems_Foods_FoodId",
+                        column: x => x.FoodId,
+                        principalTable: "Foods",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MealPlanItems_MealPlans_MealPlanId",
+                        column: x => x.MealPlanId,
+                        principalTable: "MealPlans",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MealPlanItems_MealPlans_MealPlanId1",
+                        column: x => x.MealPlanId1,
+                        principalTable: "MealPlans",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Activities_UserId",
                 table: "Activities",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Goals_UserId",
+                table: "Goals",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -187,6 +274,26 @@ namespace API.Migrations
                 name: "IX_MealItems_MealId",
                 table: "MealItems",
                 column: "MealId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealPlanItems_FoodId",
+                table: "MealPlanItems",
+                column: "FoodId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealPlanItems_MealPlanId",
+                table: "MealPlanItems",
+                column: "MealPlanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealPlanItems_MealPlanId1",
+                table: "MealPlanItems",
+                column: "MealPlanId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealPlans_UserId",
+                table: "MealPlans",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProfiles_UserId",
@@ -204,16 +311,25 @@ namespace API.Migrations
                 name: "FoodMealTypes");
 
             migrationBuilder.DropTable(
+                name: "Goals");
+
+            migrationBuilder.DropTable(
                 name: "MealItems");
+
+            migrationBuilder.DropTable(
+                name: "MealPlanItems");
 
             migrationBuilder.DropTable(
                 name: "UserProfiles");
 
             migrationBuilder.DropTable(
+                name: "Meals");
+
+            migrationBuilder.DropTable(
                 name: "Foods");
 
             migrationBuilder.DropTable(
-                name: "Meals");
+                name: "MealPlans");
 
             migrationBuilder.DropTable(
                 name: "Users");

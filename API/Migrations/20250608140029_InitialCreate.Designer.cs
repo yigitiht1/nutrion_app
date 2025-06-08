@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250608095902_InitialCreate")]
+    [Migration("20250608140029_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -22,21 +22,20 @@ namespace API.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("API.Models.Activity", b =>
+            modelBuilder.Entity("API.Entities.Goal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<double>("CaloriesBurned")
-                        .HasColumnType("double");
-
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("TargetDays")
+                        .HasColumnType("int");
+
+                    b.Property<double>("TargetWeight")
+                        .HasColumnType("double");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -45,7 +44,7 @@ namespace API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Activities");
+                    b.ToTable("Goals");
                 });
 
             modelBuilder.Entity("API.Models.Food", b =>
@@ -168,6 +167,89 @@ namespace API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Activity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<double>("CaloriesBurned")
+                        .HasColumnType("double");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("DurationInMinutes")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Activities");
+                });
+
+            modelBuilder.Entity("MealPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("TargetCalories")
+                        .HasColumnType("double");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MealPlans");
+                });
+
+            modelBuilder.Entity("MealPlanItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("FoodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealPlanId1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex("MealPlanId");
+
+                    b.HasIndex("MealPlanId1");
+
+                    b.ToTable("MealPlanItems");
+                });
+
             modelBuilder.Entity("UserProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -203,7 +285,7 @@ namespace API.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("API.Models.Activity", b =>
+            modelBuilder.Entity("API.Entities.Goal", b =>
                 {
                     b.HasOne("API.Models.User", "User")
                         .WithMany()
@@ -244,6 +326,51 @@ namespace API.Migrations
                     b.Navigation("Meal");
                 });
 
+            modelBuilder.Entity("Activity", b =>
+                {
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MealPlan", b =>
+                {
+                    b.HasOne("API.Models.User", null)
+                        .WithMany("MealPlans")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MealPlanItem", b =>
+                {
+                    b.HasOne("API.Models.Food", "Food")
+                        .WithMany()
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MealPlan", null)
+                        .WithMany("MealPlanItems")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MealPlan", "MealPlan")
+                        .WithMany()
+                        .HasForeignKey("MealPlanId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Food");
+
+                    b.Navigation("MealPlan");
+                });
+
             modelBuilder.Entity("UserProfile", b =>
                 {
                     b.HasOne("API.Models.User", "User")
@@ -263,6 +390,16 @@ namespace API.Migrations
             modelBuilder.Entity("API.Models.Meal", b =>
                 {
                     b.Navigation("MealItems");
+                });
+
+            modelBuilder.Entity("API.Models.User", b =>
+                {
+                    b.Navigation("MealPlans");
+                });
+
+            modelBuilder.Entity("MealPlan", b =>
+                {
+                    b.Navigation("MealPlanItems");
                 });
 #pragma warning restore 612, 618
         }
