@@ -32,16 +32,26 @@ public string GetBMICategory(double bmi)
 
 public double CalculateRecommendedCalories()
 {
-    double bmr = Gender.ToLower() == "male"
+    if (Weight <= 0 || Height <= 0 || Age <= 0)
+        return 0;
+
+    string gender = Gender?.ToLower();
+    if (gender != "male" && gender != "female")
+        gender = "male";
+
+    double bmr = gender == "male"
         ? 10 * Weight + 6.25 * Height - 5 * Age + 5
         : 10 * Weight + 6.25 * Height - 5 * Age - 161;
 
     double maintenanceCalories = bmr * 1.5;
 
-    if (TargetWeight > 0 && TargetDays > 0)
+    if (TargetWeight > 0 && TargetDays >= 7)
     {
         double calorieDiff = (Weight - TargetWeight) * 7700 / TargetDays;
-        return maintenanceCalories - calorieDiff;
+        double recommendedCalories = maintenanceCalories - calorieDiff;
+
+        if (recommendedCalories < 1200) recommendedCalories = 1200;
+        return recommendedCalories;
     }
 
     return maintenanceCalories;
