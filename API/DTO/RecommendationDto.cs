@@ -20,9 +20,6 @@ public class RecommendedFoodDto
 
 public class ActivityDto
 {
-    public int UserId { get; set; }
-    public string Type { get; set; } = string.Empty;   // EKLENDİ
-    public double DurationInMinutes { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int CaloriesBurned { get; set; }
-    public DateTime Date { get; set; }  // Eğer gerekiyorsa ekle
 }
