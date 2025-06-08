@@ -59,22 +59,33 @@ namespace API.Controllers
         }
 
 
-        [HttpPost("{userId}/calorie-goal")]
-        public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
-        {
-            if (userId != goalDto.UserId)
-                return BadRequest("Kullanıcı ID'si eşleşmiyor.");
+       [HttpPost("{userId}/calorie-goal")]
+public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
+{
+    if (userId != goalDto.UserId)
+        return BadRequest("Kullanıcı ID'si eşleşmiyor.");
 
-            try
-            {
-                var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+    // Mantıklı sınırlar kontrolü
+    if (goalDto.TargetWeight <= 0 || goalDto.TargetWeight > 300) 
+        return BadRequest("Hedef kilo geçersiz.");
+    if (goalDto.TargetDays < 7 || goalDto.TargetDays > 365) 
+        return BadRequest("Hedef gün sayısı 7 ile 365 arasında olmalıdır.");
+
+    try
+    {
+        var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
+
+        // Önerilen kalori sınır dışı ise ek kontrol
+        if (result < 1200 || result > 5000) 
+            return BadRequest("Önerilen kalori değeri sağlıklı aralıkta değil.");
+
+        return Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
         [HttpPut("{userId}/profile")]
         public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
         {
