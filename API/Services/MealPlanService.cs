@@ -12,75 +12,63 @@ public class MealPlanService : IMealPlanService
         _context = context;
     }
 
-    public async Task<List<Meal>> CreateMealPlanAsync(MealPlanDto dto)
+    public async Task<MealPlan> CreateMealPlanAsync(MealPlanDto dto)
     {
-        try
+        var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == dto.UserId);
+        if (profile == null)
+            throw new Exception("User profile not found.");
+
+        double targetCalories = profile.CalculateRecommendedCalories();
+
+        var foods = await _context.Foods.OrderBy(f => Guid.NewGuid()).ToListAsync();
+
+        double accumulatedCalories = 0;
+        List<MealPlanItem> selectedItems = new();
+
+        foreach (var food in foods)
         {
-            var userProfile = await _context.UserProfiles
-                .FirstOrDefaultAsync(u => u.UserId == dto.UserId);
+            if (accumulatedCalories >= targetCalories)
+                break;
 
-            if (userProfile == null)
-                throw new Exception("Kullanıcı profili bulunamadı.");
+            int quantity = 1; // miktarı isteğe göre artırılabilir
+            accumulatedCalories += food.Calories * quantity;
 
-            double dailyCalories = userProfile.CalculateRecommendedCalories();
-            var allFoods = await _context.Foods.ToListAsync();
-
-            if (!allFoods.Any())
-                throw new Exception("Veritabanında hiç yiyecek bulunamadı.");
-
-            var meals = new List<Meal>();
-            var mealTypes = new[] { "Kahvaltı", "Öğle", "Akşam" };
-
-            for (int day = 0; day < dto.DurationDays; day++)
+            selectedItems.Add(new MealPlanItem
             {
-                DateTime mealDate = dto.StartDate.AddDays(day);
-                double dailyRemaining = dailyCalories;
-
-                foreach (var type in mealTypes)
-                {
-                    var meal = new Meal
-                    {
-                        UserId = dto.UserId,
-                        Date = mealDate,
-                        MealType = type,
-                        MealItems = new List<MealItem>()
-                    };
-
-                    while (dailyRemaining > 100)
-                    {
-                        var food = allFoods
-                            .OrderBy(f => Guid.NewGuid())
-                            .FirstOrDefault(f => f.Calories < dailyRemaining);
-
-                        if (food == null) break;
-
-                        int quantity = 1;
-                        double totalCalories = food.Calories * quantity;
-
-                        if (totalCalories > dailyRemaining) break;
-
-                        meal.MealItems.Add(new MealItem
-                        {
-                            FoodId = food.Id,
-                            Quantity = quantity
-                        });
-
-                        dailyRemaining -= totalCalories;
-                    }
-
-                    meals.Add(meal);
-                }
-            }
-
-            await _context.Meals.AddRangeAsync(meals);
-            await _context.SaveChangesAsync();
-
-            return meals;
+                FoodId = food.Id,
+                Quantity = quantity
+            });
         }
-        catch (Exception ex)
+
+        var mealPlan = new MealPlan
         {
-            Console.WriteLine("MealPlan oluşturulurken hata oluştu: " + ex.Message);
-            throw;
-        }
+            UserId = dto.UserId,
+            Date = DateTime.Now,
+            Items = selectedItems
+        };
+
+        _context.MealPlans.Add(mealPlan);
+        await _context.SaveChangesAsync();
+
+        return mealPlan;
+    }
+
+    public async Task<MealPlan?> GetMealPlanByUserIdAsync(int userId)
+    {
+        return await _context.MealPlans
+            .Include(mp => mp.Items)
+            .ThenInclude(i => i.Food)
+            .FirstOrDefaultAsync(mp => mp.UserId == userId);
+    }
+
+    public async Task<bool> DeleteMealPlanAsync(int id)
+    {
+        var plan = await _context.MealPlans.FindAsync(id);
+        if (plan == null)
+            return false;
+
+        _context.MealPlans.Remove(plan);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
