@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using API.Data;
-using API.Models;
+using Microsoft.EntityFrameworkCore;
 
-public class MealPlanService
+public class MealPlanService : IMealPlanService
 {
     private readonly AppDbContext _context;
 
@@ -15,70 +10,51 @@ public class MealPlanService
         _context = context;
     }
 
-    /// <summary>
-    /// Kullanıcının hedef kalori bilgisine göre, öğün türlerine göre uygun yemeklerden
-    /// basit bir MealPlan oluşturur.
-    /// </summary>
-    public async Task<MealPlan> CreateMealPlanAsync(int userId, DateTime startDate, DateTime endDate)
+    public async Task<MealPlan> CreateMealPlanForUserAsync(int userId)
     {
-        var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
-        if (userProfile == null) throw new Exception("UserProfile bulunamadı.");
+        // Kullanıcı profilini al
+        var profile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
+        if (profile == null)
+            throw new Exception("User profile not found");
 
-        double targetCalories = userProfile.CalculateRecommendedCalories();
+        // Kalori hedefini hesapla (UserProfile içindeki methodu kullanalım)
+        double targetCalories = profile.CalculateRecommendedCalories();
 
-        // Belirtilen tarih aralığında her gün için plan oluştur
+        // Yeni MealPlan oluştur
         var mealPlan = new MealPlan
         {
             UserId = userId,
-            StartDate = startDate,
-            EndDate = endDate,
+            StartDate = DateTime.UtcNow.Date,
+            EndDate = DateTime.UtcNow.Date.AddDays(profile.TargetDays > 0 ? profile.TargetDays : 7),
             TargetCalories = targetCalories,
             MealPlanItems = new List<MealPlanItem>()
         };
 
-        // Öğün tipleri (Breakfast, Lunch, Dinner, Snack)
-        var mealTypes = Enum.GetValues(typeof(MealType)).Cast<MealType>().ToList();
+        // Kaloriye uygun yiyecekleri seç (örnek: kalori hedefini 3 öğüne böl)
+        var foods = await _context.Foods.ToListAsync();
+        if (foods.Count == 0)
+            throw new Exception("No foods found in database");
 
-        // Toplam kaloriyi öğünlere eşit dağıtalım (örneğin 4 öğün varsa %25'er)
-        double caloriesPerMeal = targetCalories / mealTypes.Count;
+        double caloriesPerMeal = targetCalories / 3;
 
-        foreach (var mealType in mealTypes)
+        // Basit örnek: kaloriye en yakın 3 yiyecek seç (kahvaltı, öğle, akşam için)
+        var selectedFoods = foods
+            .OrderBy(f => Math.Abs(f.Calories - caloriesPerMeal))
+            .Take(3)
+            .ToList();
+
+        // Her yiyecek için MealPlanItem oluştur, miktarı 1 (1 porsiyon) olarak varsayalım
+        foreach (var food in selectedFoods)
         {
-            // O öğün için uygun yiyecekleri al
-            var foodsForMeal = await _context.FoodMealTypes
-                .Include(fmt => fmt.Food)
-                .Where(fmt => fmt.MealType == mealType)
-                .Select(fmt => fmt.Food)
-                .ToListAsync();
-
-            if (!foodsForMeal.Any()) continue;
-
-            double caloriesAdded = 0;
-
-            foreach (var food in foodsForMeal)
+            mealPlan.MealPlanItems.Add(new MealPlanItem
             {
-                if (caloriesAdded >= caloriesPerMeal)
-                    break;
-
-                // Geri kalan kaloriyi hesapla
-                double remainingCalories = caloriesPerMeal - caloriesAdded;
-
-                // Yemek başına kalori - 100 gram üzerinden
-                double quantityGrams = (remainingCalories / food.Calories) * 100;
-
-                if (quantityGrams < 30) // Minimum porsiyon miktarı 30 gram
-                    quantityGrams = 30;
-
-                caloriesAdded += (food.Calories * quantityGrams) / 100;
-
-                mealPlan.MealPlanItems.Add(new MealPlanItem
-                {
-                    FoodId = food.Id,
-                    Quantity = (int)quantityGrams
-                });
-            }
+                FoodId = food.Id,
+                Quantity = 1,
+                Food = food
+            });
         }
 
+        // MealPlan'ı veritabanına ekle ve kaydet
         _context.MealPlans.Add(mealPlan);
         await _context.SaveChangesAsync();
 
