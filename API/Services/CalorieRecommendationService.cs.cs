@@ -12,7 +12,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         _context = context;
     }
 
-    // Senkron versiyon: totalCaloriesToday'yi servis içinde hesaplar ve makroları da döner
+    // Senkron versiyon: totalCaloriesToday ve makroları servis içinde hesaplar
     public RecommendationDto? GetRecommendationForUser(int userId)
     {
         var profile = _context.UserProfiles
@@ -79,12 +79,11 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             CalorieDifference = Math.Abs(difference),
             RecommendationType = difference > 0 ? "Deficit" : "Surplus",
 
-            // Kullanıcının bugün yediği toplam makrolar
+            // Bugün yenen toplam makrolar
             TotalProtein = totalProteinToday,
             TotalCarbs = totalCarbsToday,
             TotalFat = totalFatToday,
 
-            // Önerilen yiyecekler
             RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
             {
                 Name = f.Name,
@@ -96,8 +95,8 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         };
     }
 
-    // Async versiyon: totalCaloriesToday parametre olarak alınıyor, ama istersen bunu da servis içinde hesaplatabilirsin
-    public async Task<RecommendationDto?> GetRecommendationForUserAsync(int userId, int totalCaloriesToday)
+    // Asenkron versiyon: totalCaloriesToday ve makrolar servis içinde hesaplanıyor
+    public async Task<RecommendationDto?> GetRecommendationForUserAsync(int userId)
     {
         var profile = await _context.UserProfiles
             .AsNoTracking()
@@ -108,6 +107,32 @@ public class CalorieRecommendationService : ICalorieRecommendationService
 
         double bmi = profile.CalculateBMI();
         double goalCalories = profile.CalculateRecommendedCalories();
+
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+
+        var todayMeals = await _context.Meals
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && m.Date >= today && m.Date < tomorrow)
+            .Include(m => m.MealItems)
+                .ThenInclude(mi => mi.Food)
+            .ToListAsync();
+
+        int totalCaloriesToday = todayMeals
+            .SelectMany(m => m.MealItems)
+            .Sum(mi => (int)Math.Round(mi.Food.Calories * mi.Quantity));
+
+        double totalProteinToday = todayMeals
+            .SelectMany(m => m.MealItems)
+            .Sum(mi => mi.Food.Protein * mi.Quantity);
+
+        double totalCarbsToday = todayMeals
+            .SelectMany(m => m.MealItems)
+            .Sum(mi => mi.Food.Carbs * mi.Quantity);
+
+        double totalFatToday = todayMeals
+            .SelectMany(m => m.MealItems)
+            .Sum(mi => mi.Food.Fat * mi.Quantity);
 
         int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
 
@@ -137,11 +162,9 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             CalorieDifference = Math.Abs(difference),
             RecommendationType = difference > 0 ? "Deficit" : "Surplus",
 
-            // Burada toplam makroları async method'da parametre olarak almadığımız için sıfır gönderdim.
-            // İstersen asenkron versiyonu da kullanıcı yemeklerini hesaplayacak şekilde güncelleyebiliriz.
-            TotalProtein = 0,
-            TotalCarbs = 0,
-            TotalFat = 0,
+            TotalProtein = totalProteinToday,
+            TotalCarbs = totalCarbsToday,
+            TotalFat = totalFatToday,
 
             RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
             {
@@ -152,6 +175,11 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                 Fat = f.Fat
             }).ToList()
         };
+    }
+
+    public Task<RecommendationDto?> GetRecommendationForUserAsync(int userId, int totalCaloriesToday)
+    {
+        throw new NotImplementedException();
     }
 
     public Task<double> GetRecommendedCaloriesAsync(int userId)
