@@ -6,7 +6,10 @@ public class RecommendationDto
     public double TotalCarbs { get; set; }
     public double TotalFat { get; set; }
     public List<RecommendedFoodDto> RecommendedFoods { get; set; } = new();
-    public List<ActivityDto> RecommendedActivities { get; set; } = new();  // Mevcut, korundu
+    public List<ActivityDto> RecommendedActivities { get; set; } = new();
+
+    // Yeni eklenen alan
+    public string AlertMessage { get; set; } = string.Empty;
 }
 
 public class RecommendedFoodDto
