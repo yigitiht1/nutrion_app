@@ -1,3 +1,4 @@
+using API.Entities;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace API.Data{
 
         public DbSet<User> Users { get; set; }
         public DbSet<Meal> Meals { get; set; }
+        public DbSet<Goal> Goals { get; set; }
         public DbSet<MealItem> MealItems { get; set; }
         public DbSet<Food> Foods { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }

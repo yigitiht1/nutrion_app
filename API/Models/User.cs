@@ -38,7 +38,7 @@ namespace API.Models
             var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
             return PasswordHash == Convert.ToBase64String(hashedBytes);
         }
-        
+         public List<MealPlan> MealPlans { get; set; } = new();
         
 
     }

@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
+using API.Models;
 
-namespace API.Models
+public class MealPlan
 {
-    public class MealPlan
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-
-        public List<MealPlanItem> Items { get; set; } = new();
-
-        public User User { get; set; }
-    }
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public double TargetCalories { get; set; }
+    public List<MealPlanItem> MealPlanItems { get; set; } = new();
 }

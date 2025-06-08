@@ -1,6 +1,4 @@
 using API.Data;
-using API.DTOs;
-using API.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class MealPlanService : IMealPlanService
@@ -14,37 +12,45 @@ public class MealPlanService : IMealPlanService
 
     public async Task<MealPlan> CreateMealPlanAsync(MealPlanDto dto)
     {
-        var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == dto.UserId);
-        if (profile == null)
-            throw new Exception("User profile not found.");
+        var user = await _context.Users.FindAsync(dto.UserId);
+        if (user == null)
+            throw new Exception("Kullanıcı bulunamadı");
 
-        double targetCalories = profile.CalculateRecommendedCalories();
+        var goal = await _context.Goals.FirstOrDefaultAsync(g => g.UserId == dto.UserId);
+        if (goal == null)
+            throw new Exception("Kullanıcının hedef bilgisi bulunamadı");
 
-        var foods = await _context.Foods.OrderBy(f => Guid.NewGuid()).ToListAsync();
+        // BMR hesapla (Harris-Benedict)
+        double bmr = user.Gender.ToLower() == "male"
+            ? 10 * user.Weight + 6.25 * user.Height - 5 * user.Age + 5
+            : 10 * user.Weight + 6.25 * user.Height - 5 * user.Age - 161;
 
-        double accumulatedCalories = 0;
-        List<MealPlanItem> selectedItems = new();
+        double maintenanceCalories = bmr * 1.5; // Ortalama aktivite katsayısı
 
-        foreach (var food in foods)
-        {
-            if (accumulatedCalories >= targetCalories)
-                break;
+        double calorieDiff = (user.Weight - goal.TargetWeight) * 7700 / goal.TargetDays;
 
-            int quantity = 1; // miktarı isteğe göre artırılabilir
-            accumulatedCalories += food.Calories * quantity;
+        double targetCalories = maintenanceCalories - calorieDiff;
 
-            selectedItems.Add(new MealPlanItem
-            {
-                FoodId = food.Id,
-                Quantity = quantity
-            });
-        }
+        // Kullanıcıya uygun kaloriyi karşılayacak yiyecekleri çekiyoruz
+        // Burada basitçe kaloriye en yakın 5 yiyecek seçelim (sen değiştirebilirsin)
+        var foods = await _context.Foods.ToListAsync();
+
+        var selectedFoods = foods
+            .OrderBy(f => Math.Abs(f.Calories - (targetCalories / 3))) // Günlük öğün başı kalori hedefi varsayıyorum 3 öğün
+            .Take(5)
+            .ToList();
 
         var mealPlan = new MealPlan
         {
-            UserId = dto.UserId,
-            Date = DateTime.Now,
-            Items = selectedItems
+            UserId = user.Id,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            TargetCalories = targetCalories,
+            MealPlanItems = selectedFoods.Select(f => new MealPlanItem
+            {
+                FoodId = f.Id,
+                Quantity = 1
+            }).ToList()
         };
 
         _context.MealPlans.Add(mealPlan);
@@ -56,19 +62,20 @@ public class MealPlanService : IMealPlanService
     public async Task<MealPlan?> GetMealPlanByUserIdAsync(int userId)
     {
         return await _context.MealPlans
-            .Include(mp => mp.Items)
-            .ThenInclude(i => i.Food)
+            .Include(mp => mp.MealPlanItems)
+            .ThenInclude(mpi => mpi.Food)
             .FirstOrDefaultAsync(mp => mp.UserId == userId);
     }
 
     public async Task<bool> DeleteMealPlanAsync(int id)
     {
-        var plan = await _context.MealPlans.FindAsync(id);
-        if (plan == null)
+        var mealPlan = await _context.MealPlans.FindAsync(id);
+        if (mealPlan == null)
             return false;
 
-        _context.MealPlans.Remove(plan);
+        _context.MealPlans.Remove(mealPlan);
         await _context.SaveChangesAsync();
+
         return true;
     }
 }
