@@ -1,7 +1,12 @@
-using API.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using API.Data;
+using API.Models;
 
-public class MealPlanService : IMealPlanService
+public class MealPlanService
 {
     private readonly AppDbContext _context;
 
@@ -10,72 +15,73 @@ public class MealPlanService : IMealPlanService
         _context = context;
     }
 
-    public async Task<MealPlan> CreateMealPlanAsync(MealPlanDto dto)
+    /// <summary>
+    /// Kullanıcının hedef kalori bilgisine göre, öğün türlerine göre uygun yemeklerden
+    /// basit bir MealPlan oluşturur.
+    /// </summary>
+    public async Task<MealPlan> CreateMealPlanAsync(int userId, DateTime startDate, DateTime endDate)
     {
-        var user = await _context.Users.FindAsync(dto.UserId);
-        if (user == null)
-            throw new Exception("Kullanıcı bulunamadı");
+        var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
+        if (userProfile == null) throw new Exception("UserProfile bulunamadı.");
 
-        var goal = await _context.Goals.FirstOrDefaultAsync(g => g.UserId == dto.UserId);
-        if (goal == null)
-            throw new Exception("Kullanıcının hedef bilgisi bulunamadı");
+        double targetCalories = userProfile.CalculateRecommendedCalories();
 
-        // BMR hesapla (Harris-Benedict)
-        double bmr = user.Gender.ToLower() == "male"
-            ? 10 * user.Weight + 6.25 * user.Height - 5 * user.Age + 5
-            : 10 * user.Weight + 6.25 * user.Height - 5 * user.Age - 161;
-
-        double maintenanceCalories = bmr * 1.5; // Ortalama aktivite katsayısı
-
-        double calorieDiff = (user.Weight - goal.TargetWeight) * 7700 / goal.TargetDays;
-
-        double targetCalories = maintenanceCalories - calorieDiff;
-
-        // Kullanıcıya uygun kaloriyi karşılayacak yiyecekleri çekiyoruz
-        // Burada basitçe kaloriye en yakın 5 yiyecek seçelim (sen değiştirebilirsin)
-        var foods = await _context.Foods.ToListAsync();
-
-        var selectedFoods = foods
-            .OrderBy(f => Math.Abs(f.Calories - (targetCalories / 3))) // Günlük öğün başı kalori hedefi varsayıyorum 3 öğün
-            .Take(5)
-            .ToList();
-
+        // Belirtilen tarih aralığında her gün için plan oluştur
         var mealPlan = new MealPlan
         {
-            UserId = user.Id,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
+            UserId = userId,
+            StartDate = startDate,
+            EndDate = endDate,
             TargetCalories = targetCalories,
-            MealPlanItems = selectedFoods.Select(f => new MealPlanItem
-            {
-                FoodId = f.Id,
-                Quantity = 1
-            }).ToList()
+            MealPlanItems = new List<MealPlanItem>()
         };
+
+        // Öğün tipleri (Breakfast, Lunch, Dinner, Snack)
+        var mealTypes = Enum.GetValues(typeof(MealType)).Cast<MealType>().ToList();
+
+        // Toplam kaloriyi öğünlere eşit dağıtalım (örneğin 4 öğün varsa %25'er)
+        double caloriesPerMeal = targetCalories / mealTypes.Count;
+
+        foreach (var mealType in mealTypes)
+        {
+            // O öğün için uygun yiyecekleri al
+            var foodsForMeal = await _context.FoodMealTypes
+                .Include(fmt => fmt.Food)
+                .Where(fmt => fmt.MealType == mealType)
+                .Select(fmt => fmt.Food)
+                .ToListAsync();
+
+            if (!foodsForMeal.Any()) continue;
+
+            double caloriesAdded = 0;
+
+            foreach (var food in foodsForMeal)
+            {
+                if (caloriesAdded >= caloriesPerMeal)
+                    break;
+
+                // Geri kalan kaloriyi hesapla
+                double remainingCalories = caloriesPerMeal - caloriesAdded;
+
+                // Yemek başına kalori - 100 gram üzerinden
+                double quantityGrams = (remainingCalories / food.Calories) * 100;
+
+                if (quantityGrams < 30) // Minimum porsiyon miktarı 30 gram
+                    quantityGrams = 30;
+
+                caloriesAdded += (food.Calories * quantityGrams) / 100;
+
+                mealPlan.MealPlanItems.Add(new MealPlanItem
+                {
+                    FoodId = food.Id,
+                    Quantity = (int)quantityGrams
+                });
+            }
+        }
 
         _context.MealPlans.Add(mealPlan);
         await _context.SaveChangesAsync();
 
         return mealPlan;
-    }
-
-    public async Task<MealPlan?> GetMealPlanByUserIdAsync(int userId)
-    {
-        return await _context.MealPlans
-            .Include(mp => mp.MealPlanItems)
-            .ThenInclude(mpi => mpi.Food)
-            .FirstOrDefaultAsync(mp => mp.UserId == userId);
-    }
-
-    public async Task<bool> DeleteMealPlanAsync(int id)
-    {
-        var mealPlan = await _context.MealPlans.FindAsync(id);
-        if (mealPlan == null)
-            return false;
-
-        _context.MealPlans.Remove(mealPlan);
-        await _context.SaveChangesAsync();
-
-        return true;
     }
 }

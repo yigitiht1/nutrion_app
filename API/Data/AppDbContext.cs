@@ -21,15 +21,22 @@ namespace API.Data{
         
        
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<FoodMealType>()
-                .HasKey(fm => new { fm.FoodId, fm.MealType });
+{
+    modelBuilder.Entity<FoodMealType>()
+        .HasKey(fm => new { fm.FoodId, fm.MealType });
 
-            modelBuilder.Entity<FoodMealType>()
-                .HasOne(fm => fm.Food)
-                .WithMany(f => f.FoodMealTypes)
-                .HasForeignKey(fm => fm.FoodId);
-        }
+    modelBuilder.Entity<FoodMealType>()
+        .HasOne(fm => fm.Food)
+        .WithMany(f => f.FoodMealTypes)
+        .HasForeignKey(fm => fm.FoodId);
+
+    // MealPlan ile MealPlanItem arasında bire çok ilişki
+    modelBuilder.Entity<MealPlan>()
+        .HasMany(mp => mp.MealPlanItems)
+        .WithOne()
+        .HasForeignKey(mpi => mpi.MealPlanId)
+        .OnDelete(DeleteBehavior.Cascade);
+}
 
   
 }
