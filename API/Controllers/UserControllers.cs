@@ -58,8 +58,8 @@ namespace API.Controllers
             return Ok(new { message = "Giriş başarılı.", userId = user.Id });
         }
 
-      
-            [HttpPost("{userId}/calorie-goal")]
+
+        [HttpPost("{userId}/calorie-goal")]
         public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
         {
             if (userId != goalDto.UserId)
@@ -91,6 +91,7 @@ namespace API.Controllers
                 return Ok(new { message = "Profil güncellendi." });
             }
         }
+        
                 
 
         

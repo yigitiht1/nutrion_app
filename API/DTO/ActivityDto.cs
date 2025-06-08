@@ -1,11 +1,10 @@
 namespace API.DTOs
 {
-    public class ActivityDto
+
+    public class ActivityRecommendationDto
     {
-        public int UserId { get; set; }
-        public string Type { get; set; }
-        public double DurationInMinutes { get; set; }
-        public double CaloriesBurned { get; set; } // Mobil ya da AI'den hesaplanabilir
-        public DateTime Date { get; set; }
+        public int CalorieDifference { get; set; }
+        public string RecommendationType { get; set; } = string.Empty; // "Deficit" veya "Surplus"
+        public List<ActivityDto> RecommendedActivities { get; set; } = new List<ActivityDto>();
     }
 }
