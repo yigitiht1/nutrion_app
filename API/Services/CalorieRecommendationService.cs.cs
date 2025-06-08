@@ -2,6 +2,10 @@ using API.Data;
 using API.DTOs;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class CalorieRecommendationService : ICalorieRecommendationService
 {
@@ -12,174 +16,144 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         _context = context;
     }
 
-    // Senkron versiyon: totalCaloriesToday ve makroları servis içinde hesaplar
     public RecommendationDto? GetRecommendationForUser(int userId)
     {
-        var profile = _context.UserProfiles
-            .AsNoTracking()
-            .Include(p => p.User)
-            .FirstOrDefault(p => p.UserId == userId);
-
-        if (profile == null) return null;
-
-        double bmi = profile.CalculateBMI();
-        double goalCalories = profile.CalculateRecommendedCalories();
-
-        var today = DateTime.Today;
-        var tomorrow = today.AddDays(1);
-
-        var todayMeals = _context.Meals
-            .AsNoTracking()
-            .Where(m => m.UserId == userId && m.Date >= today && m.Date < tomorrow)
-            .Include(m => m.MealItems)
-                .ThenInclude(mi => mi.Food)
-            .ToList();
-
-        int totalCaloriesToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => (int)Math.Round(mi.Food.Calories * mi.Quantity));
-
-        double totalProteinToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Protein * mi.Quantity);
-
-        double totalCarbsToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Carbs * mi.Quantity);
-
-        double totalFatToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Fat * mi.Quantity);
-
-        int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
-
-        List<Food> suggestedFoods;
-
-        if (difference > 0)
+        try
         {
-            suggestedFoods = _context.Foods
+            var profile = _context.UserProfiles
                 .AsNoTracking()
-                .Where(f => f.Calories <= difference)
-                .OrderByDescending(f => f.Protein)
-                .Take(3)
-                .ToList();
-        }
-        else
-        {
-            suggestedFoods = _context.Foods
+                .Include(p => p.User)
+                .FirstOrDefault(p => p.UserId == userId);
+
+            if (profile == null) return null;
+
+            double bmi = profile.CalculateBMI();
+            double goalCalories = profile.CalculateRecommendedCalories();
+
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            var todayMeals = _context.Meals
                 .AsNoTracking()
-                .Where(f => f.Calories <= 150)
-                .OrderByDescending(f => f.Protein)
-                .Take(3)
+                .Where(m => m.UserId == userId && m.Date >= today && m.Date < tomorrow)
+                .Include(m => m.MealItems)
+                    .ThenInclude(mi => mi.Food)
                 .ToList();
-        }
 
-        return new RecommendationDto
-        {
-            CalorieDifference = Math.Abs(difference),
-            RecommendationType = difference > 0 ? "Deficit" : "Surplus",
+            var mealItems = todayMeals
+                .SelectMany(m => m.MealItems)
+                .Where(mi => mi.Food != null)
+                .ToList();
 
-            // Bugün yenen toplam makrolar
-            TotalProtein = totalProteinToday,
-            TotalCarbs = totalCarbsToday,
-            TotalFat = totalFatToday,
+            int totalCaloriesToday = (int)Math.Round(mealItems.Sum(mi => mi.Food.Calories * mi.Quantity));
+            double totalProteinToday = mealItems.Sum(mi => mi.Food.Protein * mi.Quantity);
+            double totalCarbsToday = mealItems.Sum(mi => mi.Food.Carbs * mi.Quantity);
+            double totalFatToday = mealItems.Sum(mi => mi.Food.Fat * mi.Quantity);
 
-            RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
+            int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
+
+            List<Food> suggestedFoods;
+
+            if (difference > 0)
             {
-                Name = f.Name,
-                Calories = f.Calories,
-                Protein = f.Protein,
-                Carbs = f.Carbs,
-                Fat = f.Fat
-            }).ToList()
-        };
+                suggestedFoods = _context.Foods
+                    .AsNoTracking()
+                    .Where(f => f.Calories <= difference)
+                    .OrderByDescending(f => f.Protein)
+                    .Take(3)
+                    .ToList();
+            }
+            else
+            {
+                suggestedFoods = _context.Foods
+                    .AsNoTracking()
+                    .Where(f => f.Calories <= 150)
+                    .OrderByDescending(f => f.Protein)
+                    .Take(3)
+                    .ToList();
+            }
+
+            return new RecommendationDto
+            {
+                CalorieDifference = Math.Abs(difference),
+                RecommendationType = difference > 0 ? "Deficit" : "Surplus",
+                TotalProtein = totalProteinToday,
+                TotalCarbs = totalCarbsToday,
+                TotalFat = totalFatToday,
+                RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
+                {
+                    Name = f.Name,
+                    Calories = f.Calories,
+                    Protein = f.Protein,
+                    Carbs = f.Carbs,
+                    Fat = f.Fat
+                }).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetRecommendationForUser: {ex.Message}");
+            return null;
+        }
     }
 
-    // Asenkron versiyon: totalCaloriesToday ve makrolar servis içinde hesaplanıyor
-    public async Task<RecommendationDto?> GetRecommendationForUserAsync(int userId)
+    public async Task<RecommendationDto?> GetRecommendationForUserAsync(int userId, int totalCaloriesToday)
     {
-        var profile = await _context.UserProfiles
-            .AsNoTracking()
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.UserId == userId);
-
-        if (profile == null) return null;
-
-        double bmi = profile.CalculateBMI();
-        double goalCalories = profile.CalculateRecommendedCalories();
-
-        var today = DateTime.Today;
-        var tomorrow = today.AddDays(1);
-
-        var todayMeals = await _context.Meals
-            .AsNoTracking()
-            .Where(m => m.UserId == userId && m.Date >= today && m.Date < tomorrow)
-            .Include(m => m.MealItems)
-                .ThenInclude(mi => mi.Food)
-            .ToListAsync();
-
-        int totalCaloriesToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => (int)Math.Round(mi.Food.Calories * mi.Quantity));
-
-        double totalProteinToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Protein * mi.Quantity);
-
-        double totalCarbsToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Carbs * mi.Quantity);
-
-        double totalFatToday = todayMeals
-            .SelectMany(m => m.MealItems)
-            .Sum(mi => mi.Food.Fat * mi.Quantity);
-
-        int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
-
-        List<Food> suggestedFoods;
-
-        if (difference > 0)
+        try
         {
-            suggestedFoods = await _context.Foods
+            var profile = await _context.UserProfiles
                 .AsNoTracking()
-                .Where(f => f.Calories <= difference)
-                .OrderByDescending(f => f.Protein)
-                .Take(3)
-                .ToListAsync();
-        }
-        else
-        {
-            suggestedFoods = await _context.Foods
-                .AsNoTracking()
-                .Where(f => f.Calories <= 150)
-                .OrderByDescending(f => f.Protein)
-                .Take(3)
-                .ToListAsync();
-        }
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        return new RecommendationDto
-        {
-            CalorieDifference = Math.Abs(difference),
-            RecommendationType = difference > 0 ? "Deficit" : "Surplus",
+            if (profile == null) return null;
 
-            TotalProtein = totalProteinToday,
-            TotalCarbs = totalCarbsToday,
-            TotalFat = totalFatToday,
+            double goalCalories = profile.CalculateRecommendedCalories();
+            int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
 
-            RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
+            List<Food> suggestedFoods;
+
+            if (difference > 0)
             {
-                Name = f.Name,
-                Calories = f.Calories,
-                Protein = f.Protein,
-                Carbs = f.Carbs,
-                Fat = f.Fat
-            }).ToList()
-        };
-    }
+                suggestedFoods = await _context.Foods
+                    .AsNoTracking()
+                    .Where(f => f.Calories <= difference)
+                    .OrderByDescending(f => f.Protein)
+                    .Take(3)
+                    .ToListAsync();
+            }
+            else
+            {
+                suggestedFoods = await _context.Foods
+                    .AsNoTracking()
+                    .Where(f => f.Calories <= 150)
+                    .OrderByDescending(f => f.Protein)
+                    .Take(3)
+                    .ToListAsync();
+            }
 
-    public Task<RecommendationDto?> GetRecommendationForUserAsync(int userId, int totalCaloriesToday)
-    {
-        throw new NotImplementedException();
+            return new RecommendationDto
+            {
+                CalorieDifference = Math.Abs(difference),
+                RecommendationType = difference > 0 ? "Deficit" : "Surplus",
+                TotalProtein = 0, // async versiyon için detaylı makro hesaplanmıyor
+                TotalCarbs = 0,
+                TotalFat = 0,
+                RecommendedFoods = suggestedFoods.Select(f => new RecommendedFoodDto
+                {
+                    Name = f.Name,
+                    Calories = f.Calories,
+                    Protein = f.Protein,
+                    Carbs = f.Carbs,
+                    Fat = f.Fat
+                }).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetRecommendationForUserAsync: {ex.Message}");
+            return null;
+        }
     }
 
     public Task<double> GetRecommendedCaloriesAsync(int userId)
