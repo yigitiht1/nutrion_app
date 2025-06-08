@@ -16,7 +16,6 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         _context = context;
     }
 
-    // Senkron versiyon (isteğe bağlı)
     public RecommendationDto? GetRecommendationForUser(int userId)
     {
         try
@@ -51,20 +50,21 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             double totalCarbsToday = mealItems.Sum(mi => mi.Food.Carbs * mi.Quantity);
             double totalFatToday = mealItems.Sum(mi => mi.Food.Fat * mi.Quantity);
 
-            int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
+            int difference = (int)Math.Round(totalCaloriesToday - goalCalories); // Fark = Alınan - Hedef
 
-            if (difference > 0) // kalori açığı varsa -> besin önerisi
+            if (difference < 0) // Kalori açığı varsa -> yiyecek önerisi
             {
+                int deficit = Math.Abs(difference);
                 var suggestedFoods = _context.Foods
                     .AsNoTracking()
-                    .Where(f => f.Calories <= difference)
+                    .Where(f => f.Calories <= deficit)
                     .OrderByDescending(f => f.Protein)
                     .Take(3)
                     .ToList();
 
                 return new RecommendationDto
                 {
-                    CalorieDifference = difference,
+                    CalorieDifference = difference,  // Negatif açığı gösterir
                     RecommendationType = "Deficit",
                     TotalProtein = totalProteinToday,
                     TotalCarbs = totalCarbsToday,
@@ -80,19 +80,24 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                     RecommendedActivities = new List<ActivityDto>()
                 };
             }
-            else // kalori fazlası varsa -> aktivite önerisi
+            else // Kalori fazlası varsa -> aktivite önerisi
             {
+                // Aktivite listesini artırdım, toplam yakım daha yüksek
                 var recommendedActivities = new List<ActivityDto>
                 {
-                    new ActivityDto { Name = "20 Dakika Koşu", CaloriesBurned = 250 },
-                    new ActivityDto { Name = "10 Dakika Merdiven Çıkma", CaloriesBurned = 120 },
-                    new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 200 },
-                    new ActivityDto { Name = "15 Dakika Yüzme", CaloriesBurned = 180 }
+                    new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
+                    new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
+                    new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
+                    new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
+                    new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
+                    new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
+                    new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
+                    new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
                 };
 
                 return new RecommendationDto
                 {
-                    CalorieDifference = Math.Abs(difference),
+                    CalorieDifference = difference,  // Pozitif fazlalık gösterilir
                     RecommendationType = "Surplus",
                     TotalProtein = totalProteinToday,
                     TotalCarbs = totalCarbsToday,
@@ -109,7 +114,6 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         }
     }
 
-    // Asenkron versiyon
     public async Task<RecommendationDto?> GetRecommendationForUserAsync(int userId, int totalCaloriesToday)
     {
         try
@@ -123,7 +127,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                 return null;
 
             double goalCalories = profile.CalculateRecommendedCalories();
-            int difference = (int)Math.Round(goalCalories - totalCaloriesToday);
+            int difference = (int)Math.Round(totalCaloriesToday - goalCalories); // Alınan - Hedef
 
             var today = DateTime.UtcNow.Date;
             var tomorrow = today.AddDays(1);
@@ -147,30 +151,35 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             List<Food> suggestedFoods = new();
             List<ActivityDto> recommendedActivities = new();
 
-            if (difference > 0) // kalori açığı varsa -> yiyecek önerisi
+            if (difference < 0) // Kalori açığı -> yiyecek önerisi
             {
+                int deficit = Math.Abs(difference);
                 suggestedFoods = await _context.Foods
                     .AsNoTracking()
-                    .Where(f => f.Calories <= difference)
+                    .Where(f => f.Calories <= deficit)
                     .OrderByDescending(f => f.Protein)
                     .Take(3)
                     .ToListAsync();
             }
-            else // kalori fazlası varsa -> aktivite önerisi
+            else // Kalori fazlası -> aktivite önerisi
             {
                 recommendedActivities = new List<ActivityDto>
                 {
-                    new ActivityDto { Name = "20 Dakika Koşu", CaloriesBurned = 250 },
-                    new ActivityDto { Name = "10 Dakika Merdiven Çıkma", CaloriesBurned = 120 },
-                    new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 200 },
-                    new ActivityDto { Name = "15 Dakika Yüzme", CaloriesBurned = 180 }
+                    new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
+                    new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
+                    new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
+                    new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
+                    new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
+                    new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
+                    new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
+                    new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
                 };
             }
 
             return new RecommendationDto
             {
-                CalorieDifference = Math.Abs(difference),
-                RecommendationType = difference > 0 ? "Deficit" : "Surplus",
+                CalorieDifference = difference, // Pozitif/negatif farkı gösterir
+                RecommendationType = difference < 0 ? "Deficit" : "Surplus",
                 TotalProtein = totalProteinToday,
                 TotalCarbs = totalCarbsToday,
                 TotalFat = totalFatToday,
@@ -192,7 +201,6 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         }
     }
 
-    // İstersen bu metodu da uygun şekilde implement edebilirsin
     public async Task<double> GetRecommendedCaloriesAsync(int userId)
     {
         var profile = await _context.UserProfiles
