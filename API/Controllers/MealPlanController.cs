@@ -1,5 +1,4 @@
 using API.DTOs;
-using API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -13,8 +12,8 @@ public class MealPlanController : ControllerBase
         _mealPlanService = mealPlanService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateMealPlan([FromBody] MealPlanDto dto)
+    [HttpPost("generate")]
+    public async Task<IActionResult> GenerateMealPlan([FromBody] MealPlanDto dto)
     {
         try
         {
@@ -23,17 +22,7 @@ public class MealPlanController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return StatusCode(500, $"Sunucu hatası: {ex.Message}");
         }
-    }
-
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetMealPlan(int userId)
-    {
-        var meals = await _mealPlanService.GetMealPlanByUserIdAsync(userId);
-        if (meals == null || !meals.Any())
-            return NotFound("Kullanıcı için diyet listesi bulunamadı.");
-
-        return Ok(meals);
     }
 }
