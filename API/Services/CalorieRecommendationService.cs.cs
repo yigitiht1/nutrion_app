@@ -42,23 +42,23 @@ public RecommendationDto? GetRecommendationForUser(int userId)
 
     List<Food> suggestedFoods;
 
-        if (difference > 0)
+            if (difference > 0)
         {
             suggestedFoods = _context.Foods
                 .AsNoTracking()
-                .Where(f => f.Calories <= difference)  // Burayı değiştir
+                .Where(f => f.Calories <= difference)  // Kalori açığından yüksek yiyecekler çıkarıldı
                 .OrderByDescending(f => f.Protein)
                 .Take(3)
                 .ToList();
         }
         else
         {
-                suggestedFoods = _context.Foods
-                    .AsNoTracking()
-                    .Where(f => f.Calories <= 150)
-                    .OrderByDescending(f => f.Protein)
-                    .Take(3)
-                    .ToList();
+            suggestedFoods = _context.Foods
+                .AsNoTracking()
+                .Where(f => f.Calories <= 150)
+                .OrderByDescending(f => f.Protein)
+                .Take(3)
+                .ToList();
         }
 
     return new RecommendationDto
