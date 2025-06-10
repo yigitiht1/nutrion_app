@@ -40,7 +40,7 @@ public class MealPlanService : IMealPlanService
         PlannedMeals = new List<PlannedMeal>()
     };
 
-    int mealsPerDay = 4; // 4 öğün
+    int mealsPerDay = 4;
     int caloriesPerMeal = targetCalories / mealsPerDay;
 
     for (int dayIndex = 0; dayIndex < totalDays; dayIndex++)
@@ -63,7 +63,7 @@ public class MealPlanService : IMealPlanService
             if (portionGram <= 0)
                 continue;
 
-            int portionCalories = (food.CaloriesPer100g * portionGram) / 100;
+            int portionCalories = food.CaloriesPer100g * portionGram / 100;
 
             mealPlan.PlannedMeals.Add(new PlannedMeal
             {
