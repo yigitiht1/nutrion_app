@@ -12,15 +12,18 @@ public class FoodService : IFoodService
         _context = context;
     }
 
-  public async Task AddFoodAsync(FoodDto dto)
+public async Task AddFoodAsync(FoodDto dto)
 {
+    double factor = dto.PortionGrams / 100.0;
+
     var food = new Food
     {
         Name = dto.Name,
-        Calories = dto.Calories,
-        Protein = dto.Protein,
-        Carbs = dto.Carbs,
-        Fat = dto.Fat,
+        Calories = dto.Calories * factor,
+        Protein = dto.Protein * factor,
+        Carbs = dto.Carbs * factor,
+        Fat = dto.Fat * factor,
+        CaloriesPer100g = dto.PortionGrams,
         FoodMealTypes = dto.MealTypes.Select(mt => new FoodMealType
         {
             MealType = mt
@@ -30,7 +33,6 @@ public class FoodService : IFoodService
     _context.Foods.Add(food);
     await _context.SaveChangesAsync();
 }
-
    public async Task<List<FoodDto>> GetAllFoodsAsync()
     {
         var foods = await _context.Foods
