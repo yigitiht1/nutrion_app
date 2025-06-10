@@ -1,5 +1,6 @@
 using API.Data;
 using API.DTOs;
+using API.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class CalorieService : ICalorieService
@@ -58,8 +59,74 @@ public class CalorieService : ICalorieService
             AdviceMessage = message
         };
     }
+public async Task<MealPlanDto> CreatePersonalizedMealPlanAsync(int userId, double dailyCalorieTarget)
+{
+    var user = await _context.Users.FindAsync(userId);
+    if (user == null)
+        throw new Exception("Kullanıcı bulunamadı.");
 
-    public Task<List<MealDto>> CreatePersonalizedMealPlanAsync(int userId, double dailyCalorieTarget)
+    var mealDistributions = new Dictionary<MealType, double>
+    {
+        { MealType.Breakfast, 0.3 },
+        { MealType.Lunch, 0.35 },
+        { MealType.Dinner, 0.25 },
+        { MealType.Snack, 0.1 }
+    };
+
+    var plannedMeals = new List<PlannedMealDto>();
+
+    foreach (var meal in mealDistributions)
+    {
+        var targetCalories = dailyCalorieTarget * meal.Value;
+
+        var foods = await _context.FoodMealTypes
+            .Where(fm => fm.MealType == meal.Key)
+            .Select(fm => fm.Food)
+            .Distinct()
+            .ToListAsync();
+
+        var selectedFoods = new List<Food>();
+        double totalCals = 0, protein = 0, carbs = 0, fat = 0;
+
+        foreach (var food in foods.OrderBy(f => Guid.NewGuid()))
+        {
+            if (totalCals + food.Calories <= targetCalories)
+            {
+                selectedFoods.Add(food);
+                totalCals += food.Calories;
+                protein += food.Protein;
+                carbs += food.Carbs;
+                fat += food.Fat;
+            }
+
+            if (totalCals >= targetCalories * 0.95)
+                break;
+        }
+
+        plannedMeals.Add(new PlannedMealDto
+        {
+            Day = DateTime.Now.ToString("yyyy-MM-dd"),  // Gün veya tarih bilgisi
+            MealType = meal.Key,
+            Foods = selectedFoods.Select(f => new FoodDto
+            {
+                Name = f.Name,
+                Calories = f.Calories,
+                Protein = f.Protein,
+                Carbs = f.Carbs,
+                Fat = f.Fat,
+                MealTypes = f.FoodMealTypes.Select(mt => mt.MealType).ToList()
+            }).ToList()
+        });
+    }
+
+    return new MealPlanDto
+    {
+        StartDate = DateTime.Now,
+        EndDate = DateTime.Now.AddDays(7),
+        PlannedMeals = plannedMeals
+    };
+}
+    Task<List<MealDto>> ICalorieService.CreatePersonalizedMealPlanAsync(int userId, double dailyCalorieTarget)
     {
         throw new NotImplementedException();
     }

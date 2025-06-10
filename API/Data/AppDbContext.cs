@@ -2,7 +2,8 @@ using API.Entities;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Data{
+namespace API.Data
+{
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -14,30 +15,39 @@ namespace API.Data{
         public DbSet<Food> Foods { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<FoodMealType> FoodMealTypes { get; set; }
-        public DbSet<Activity> Activities { get; set; }
+
+        public DbSet<PlannedMeal> PlannedMeals { get; set; }
         public DbSet<MealPlan> MealPlans { get; set; }
         public DbSet<MealPlanItem> MealPlanItems { get; set; }
 
-        
-       
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<FoodMealType>()
-        .HasKey(fm => new { fm.FoodId, fm.MealType });
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
-    modelBuilder.Entity<FoodMealType>()
-        .HasOne(fm => fm.Food)
-        .WithMany(f => f.FoodMealTypes)
-        .HasForeignKey(fm => fm.FoodId);
+            // Composite primary key for FoodMealType
+            modelBuilder.Entity<FoodMealType>()
+                .HasKey(fm => new { fm.FoodId, fm.MealType });
 
-    // MealPlan ile MealPlanItem arasında bire çok ilişki
-    modelBuilder.Entity<MealPlan>()
-        .HasMany(mp => mp.MealPlanItems)
-        .WithOne()
-        .HasForeignKey(mpi => mpi.MealPlanId)
-        .OnDelete(DeleteBehavior.Cascade);
-}
+            // One-to-many: FoodMealType -> Food
+            modelBuilder.Entity<FoodMealType>()
+                .HasOne(fm => fm.Food)
+                .WithMany(f => f.FoodMealTypes)
+                .HasForeignKey(fm => fm.FoodId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-  
-}
+            // One-to-many: MealPlan -> MealPlanItems
+            modelBuilder.Entity<MealPlan>()
+                .HasMany(mp => mp.MealPlanItems)
+                .WithOne()
+                .HasForeignKey(mpi => mpi.MealPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Eğer PlannedMeal ile MealPlan arasında ilişki varsa (örnek)
+            modelBuilder.Entity<MealPlan>()
+                .HasMany(mp => mp.PlannedMeals)
+                .WithOne(pm => pm.MealPlan)
+                .HasForeignKey(pm => pm.MealPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
 }

@@ -1,6 +1,6 @@
 public class MealPlanDto
 {
-    public int UserId { get; set; }
-    public DateTime StartDate { get; set; } // Diyet başlangıç tarihi
-    public DateTime EndDate { get; set; }   // Diyet bitiş tarihi
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public List<PlannedMealDto> PlannedMeals { get; set; }
 }

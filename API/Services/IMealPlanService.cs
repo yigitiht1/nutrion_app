@@ -1,8 +1,6 @@
-using API.Data;
-using API.Models;
-using Microsoft.EntityFrameworkCore;
-
 public interface IMealPlanService
 {
-    Task<MealPlan> CreateMealPlanForUserAsync(int userId);
+    Task CreateMealPlanAsync(int userId, MealPlanDto dto);
+    Task<List<MealPlanDto>> GetMealPlansByUserAsync(int userId);
+    Task DeleteMealPlanAsync(int userId, int mealPlanId);
 }
