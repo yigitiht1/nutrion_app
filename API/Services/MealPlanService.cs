@@ -11,43 +11,43 @@ public class MealPlanService : IMealPlanService
         _context = context;
     }
 
-    public async Task CreateMealPlanAsync(int userId, MealPlanDto dto)
+  public async Task CreateMealPlanAsync(int userId, MealPlanDto dto)
+{
+    var mealPlan = new MealPlan
     {
-        var mealPlan = new MealPlan
-        {
-            UserId = userId,
-            StartDate = dto.StartDate ?? DateTime.Now,
-            EndDate = dto.EndDate ?? DateTime.Now,
-            PlannedMeals = new List<PlannedMeal>()
-        };
+        UserId = userId,
+        StartDate = dto.StartDate ?? DateTime.Now,
+        EndDate = dto.EndDate ?? DateTime.Now,
+        PlannedMeals = new List<PlannedMeal>()
+    };
 
-        foreach (var plannedMealDto in dto.PlannedMeals)
+    foreach (var plannedMealDto in dto.PlannedMeals)
+    {
+        if (plannedMealDto.Foods != null && plannedMealDto.Foods.Any())
         {
-            if (plannedMealDto.Foods != null && plannedMealDto.Foods.Any())
+            foreach (var foodDto in plannedMealDto.Foods)
             {
-                foreach (var foodDto in plannedMealDto.Foods)
+                var food = await _context.Foods.FirstOrDefaultAsync(f => f.Name == foodDto.Name);
+                if (food == null)
+                    throw new Exception($"Food '{foodDto.Name}' bulunamadı.");
+
+                mealPlan.PlannedMeals.Add(new PlannedMeal
                 {
-                    var food = await _context.Foods.FirstOrDefaultAsync(f => f.Name == foodDto.Name);
-                    if (food == null)
-                        throw new Exception($"Food '{foodDto.Name}' bulunamadı.");
-
-                    mealPlan.PlannedMeals.Add(new PlannedMeal
-                    {
-                        Day = plannedMealDto.Day,
-                        MealType = plannedMealDto.MealType,
-                        FoodId = food.Id
-                    });
-                }
-            }
-            else
-            {
-                throw new Exception("PlannedMealDto içinde Food listesi boş olamaz.");
+                    Day = plannedMealDto.Day,
+                    MealType = plannedMealDto.MealType,
+                    FoodId = food.Id
+                });
             }
         }
-
-        _context.MealPlans.Add(mealPlan);
-        await _context.SaveChangesAsync();
+        else
+        {
+            throw new Exception($"'{plannedMealDto.Day}' günündeki '{plannedMealDto.MealType}' öğünü için Food listesi boş olamaz.");
+        }
     }
+
+    _context.MealPlans.Add(mealPlan);
+    await _context.SaveChangesAsync();
+}
 
     public async Task<List<MealPlanDto>> GetMealPlansByUserAsync(int userId)
     {

@@ -10,4 +10,5 @@ public class PlannedMeal
 
     public MealPlan MealPlan { get; set; }
     public Food Food { get; set; }
+      public int PortionGrams { get; set; }
 }

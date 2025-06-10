@@ -11,18 +11,20 @@ public class MealPlanController : ControllerBase
         _mealPlanService = mealPlanService;
     }
 
-    [HttpPost("create/{userId}")]
-    public async Task<IActionResult> CreateMealPlan(int userId, [FromBody] MealPlanDto dto)
-    {
-        await _mealPlanService.CreateMealPlanAsync(userId, dto);
-        return Ok("Meal plan created.");
-    }
 
-    [HttpGet("user/{userId}")] 
+
+    [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetUserMealPlans(int userId)
     {
         var plans = await _mealPlanService.GetMealPlansByUserAsync(userId);
         return Ok(plans);
+    }
+
+    [HttpGet("user/{userId}/weekly-plan")]
+    public async Task<IActionResult> GetWeeklyMealPlan(int userId)
+    {
+        var plan = await _mealPlanService.GenerateWeeklyMealPlanAsync(userId);
+        return Ok(plan);
     }
 
     [HttpDelete("{userId}/{id}")]
@@ -31,12 +33,11 @@ public class MealPlanController : ControllerBase
         await _mealPlanService.DeleteMealPlanAsync(userId, id);
         return Ok("Deleted");
     }
-
-    // Haftalık diyet listesi önerisi için yeni endpoint
-    [HttpGet("user/{userId}/weekly-plan")]
-    public async Task<IActionResult> GetWeeklyMealPlan(int userId)
+    
+        [HttpPost("create/{userId}")]
+    public async Task<IActionResult> CreateMealPlan(int userId, [FromBody] MealPlanDto dto)
     {
-        var plan = await _mealPlanService.GenerateWeeklyMealPlanAsync(userId);
-        return Ok(plan);
+        await _mealPlanService.CreateMealPlanAsync(userId, dto);
+        return Ok("Meal plan created.");
     }
 }
