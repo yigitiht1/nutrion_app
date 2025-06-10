@@ -46,9 +46,8 @@ public class FoodService : IFoodService
             Fat = f.Fat,
             MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
         }).ToList();
-    }public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
-{
-    try
+    }
+    public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
     {
         return await _context.FoodMealTypes
             .Include(fmt => fmt.Food)
@@ -56,16 +55,6 @@ public class FoodService : IFoodService
             .Select(fmt => fmt.Food)
             .ToListAsync();
     }
-    catch (Exception ex)
-    {
-        // Log kaydı veya konsola yazdır
-        Console.WriteLine($"[ERROR] GetFoodsByMealTypeAsync: {ex.Message}");
-        throw; // hata fırlatmaya devam et
-    }
-}
 
-    Task<List<FoodDto>> IFoodService.GetFoodsByMealTypeAsync(MealType mealType)
-    {
-        throw new NotImplementedException();
-    }
+   
 }

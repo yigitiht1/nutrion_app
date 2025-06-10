@@ -25,7 +25,7 @@ namespace API.Models
     public class FoodMealType
     {
         public int FoodId { get; set; }
-        public Food Food { get; set; }
+        public Food? Food { get; set; }
 
         public MealType MealType { get; set; }
     }
