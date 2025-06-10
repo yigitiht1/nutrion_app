@@ -17,13 +17,13 @@ namespace API.Models
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
-        // Yeni alanlar
         public double Height { get; set; } // cm
         public double Weight { get; set; } // kg
         public int Age { get; set; }
         public string Gender { get; set; } = string.Empty;
+         public int DailyCalorieNeed { get; set; } 
+         public int CalorieDeficit { get; set; } 
 
-        // Şifre hashleme
         public void SetPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -31,7 +31,6 @@ namespace API.Models
             PasswordHash = Convert.ToBase64String(hashedBytes);
         }
 
-        // Şifre doğrulama
         public bool VerifyPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -39,7 +38,7 @@ namespace API.Models
             return PasswordHash == Convert.ToBase64String(hashedBytes);
         }
         public List<MealPlan> MealPlans { get; set; } = new();
-          public UserProfile UserProfile { get; set; } // BU NAVIGATION PROPERTY OLMALI
+        public UserProfile UserProfile { get; set; } // BU NAVIGATION PROPERTY OLMALI
     }
         
 

@@ -26,6 +26,12 @@ public class MealPlanController : ControllerBase
         var plan = await _mealPlanService.GenerateWeeklyMealPlanAsync(userId);
         return Ok(plan);
     }
+    [HttpPost("create/{userId}")]
+    public async Task<IActionResult> CreateMealPlan(int userId, [FromBody] MealPlanDto dto)
+    {
+        await _mealPlanService.CreateMealPlanAsync(userId, dto);
+        return Ok("Meal plan created.");
+    }
 
     [HttpDelete("{userId}/{id}")]
     public async Task<IActionResult> DeleteMealPlan(int userId, int id)
@@ -34,10 +40,5 @@ public class MealPlanController : ControllerBase
         return Ok("Deleted");
     }
     
-        [HttpPost("create/{userId}")]
-    public async Task<IActionResult> CreateMealPlan(int userId, [FromBody] MealPlanDto dto)
-    {
-        await _mealPlanService.CreateMealPlanAsync(userId, dto);
-        return Ok("Meal plan created.");
-    }
+   
 }

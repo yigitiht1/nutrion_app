@@ -105,7 +105,7 @@ public async Task<MealPlanDto> CreatePersonalizedMealPlanAsync(int userId, doubl
 
         plannedMeals.Add(new PlannedMealDto
         {
-            Day = DateTime.Now.ToString("yyyy-MM-dd"),  // Gün veya tarih bilgisi
+            Day = DateTime.Now, 
             MealType = meal.Key,
             Foods = selectedFoods.Select(f => new FoodDto
             {

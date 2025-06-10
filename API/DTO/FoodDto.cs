@@ -9,4 +9,5 @@ public class FoodDto
     public double Fat { get; set; }
 
     public List<MealType> MealTypes { get; set; } = new();
+    public int PortionGrams { get; set; }
 }

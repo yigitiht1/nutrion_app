@@ -14,12 +14,12 @@ public class FoodController : ControllerBase
         _foodService = foodService;
     }
 
- [HttpGet]
-public async Task<IActionResult> GetAllFoods()
-{
-    var foods = await _foodService.GetAllFoodsAsync();
-    return Ok(foods);
-}
+    [HttpGet]
+    public async Task<IActionResult> GetAllFoods()
+    {
+        var foods = await _foodService.GetAllFoodsAsync();
+        return Ok(foods);
+    }
 
     // Öğün tipine göre yiyecekleri getir
     [HttpGet("meal/{mealType}")]

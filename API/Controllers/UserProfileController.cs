@@ -33,8 +33,6 @@ namespace API.Controllers
             return Ok(new { message = "Profil oluşturuldu." });
         }
 
-       
-
         [HttpPut("{userId}")]
         public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UserProfileDto dto)
         {
