@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using API.Models;
 
 public class UserProfile
@@ -11,8 +12,9 @@ public class UserProfile
 
     public double TargetWeight { get; set; }   // EKLENDİ
     public int TargetDays { get; set; }        // EKLENDİ
-
+    [ForeignKey("UserId")]
     public User User { get; set; }
+
 
     public double CalculateBMI()
 {

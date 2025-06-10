@@ -11,7 +11,6 @@ public class MealPlanController : ControllerBase
         _mealPlanService = mealPlanService;
     }
 
-    // Kullanıcı ID'yi route parametresi olarak alıyoruz
     [HttpPost("create/{userId}")]
     public async Task<IActionResult> CreateMealPlan(int userId, [FromBody] MealPlanDto dto)
     {
@@ -31,5 +30,13 @@ public class MealPlanController : ControllerBase
     {
         await _mealPlanService.DeleteMealPlanAsync(userId, id);
         return Ok("Deleted");
+    }
+
+    // Haftalık diyet listesi önerisi için yeni endpoint
+    [HttpGet("user/{userId}/weekly-plan")]
+    public async Task<IActionResult> GetWeeklyMealPlan(int userId)
+    {
+        var plan = await _mealPlanService.GenerateWeeklyMealPlanAsync(userId);
+        return Ok(plan);
     }
 }
