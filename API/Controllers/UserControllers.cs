@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using API.Services;
 using API.DTOs;
+using System;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -18,12 +20,14 @@ namespace API.Controllers
             _userProfileService = userProfileService;
             _calorieService = calorieService;
         }
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
+
         [HttpGet("{userId}/bmi-calories")]
         public async Task<IActionResult> GetBmiAndCalorie(int userId, [FromQuery] int totalCaloriesToday)
         {
@@ -58,17 +62,16 @@ namespace API.Controllers
             return Ok(new { message = "Giriş başarılı.", userId = user.Id });
         }
 
-
-       [HttpPost("{userId}/calorie-goal")]
+        [HttpPost("{userId}/calorie-goal")]
         public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
         {
             if (userId != goalDto.UserId)
                 return BadRequest("Kullanıcı ID'si eşleşmiyor.");
 
             // Mantıklı sınırlar kontrolü
-            if (goalDto.TargetWeight <= 0 || goalDto.TargetWeight > 300) 
+            if (goalDto.TargetWeight <= 0 || goalDto.TargetWeight > 300)
                 return BadRequest("Hedef kilo geçersiz.");
-            if (goalDto.TargetDays < 7 || goalDto.TargetDays > 365) 
+            if (goalDto.TargetDays < 7 || goalDto.TargetDays > 365)
                 return BadRequest("Hedef gün sayısı 7 ile 365 arasında olmalıdır.");
 
             try
@@ -76,7 +79,7 @@ namespace API.Controllers
                 var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
 
                 // Önerilen kalori sınır dışı ise ek kontrol
-                if (result < 1200 || result > 5000) 
+                if (result < 1200 || result > 5000)
                     return BadRequest("Önerilen kalori değeri sağlıklı aralıkta değil.");
 
                 return Ok(result);
@@ -86,25 +89,34 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // Profil Get
+        [HttpGet("{userId}/profile")]
+        public async Task<IActionResult> GetProfile(int userId)
+        {
+            var profile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+            if (profile == null)
+                return NotFound(new { message = "Profil bulunamadı." });
+
+            return Ok(profile);
+        }
+
+        // Profil Create veya Update
         [HttpPut("{userId}/profile")]
         public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
         {
-             var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
-                if (existingProfile == null)
-                    {
-                        dto.UserId = userId;
-                        await _userProfileService.CreateUserProfileAsync(dto);
-                        return Ok(new { message = "Profil oluşturuldu." });
-                    }
-                    else
-                    {
-                        await _userProfileService.UpdateUserProfileAsync(userId, dto);
-                        return Ok(new { message = "Profil güncellendi." });
-                    }
-        }
-                
-                        
-
-                
+            var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+            if (existingProfile == null)
+            {
+                dto.UserId = userId;
+                await _userProfileService.CreateUserProfileAsync(dto);
+                return Ok(new { message = "Profil oluşturuldu." });
+            }
+            else
+            {
+                await _userProfileService.UpdateUserProfileAsync(userId, dto);
+                return Ok(new { message = "Profil güncellendi." });
             }
         }
+    }
+}
