@@ -24,25 +24,25 @@ namespace API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Composite primary key for FoodMealType
+            
             modelBuilder.Entity<FoodMealType>()
                 .HasKey(fm => new { fm.FoodId, fm.MealType });
 
-            // One-to-many: FoodMealType -> Food
+          
             modelBuilder.Entity<FoodMealType>()
                 .HasOne(fm => fm.Food)
                 .WithMany(f => f.FoodMealTypes)
                 .HasForeignKey(fm => fm.FoodId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-many: MealPlan -> MealPlanItems
+           
             modelBuilder.Entity<MealPlan>()
                 .HasMany(mp => mp.MealPlanItems)
                 .WithOne()
                 .HasForeignKey(mpi => mpi.MealPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Eğer PlannedMeal ile MealPlan arasında ilişki varsa (örnek)
+          
             modelBuilder.Entity<MealPlan>()
                 .HasMany(mp => mp.PlannedMeals)
                 .WithOne(pm => pm.MealPlan)

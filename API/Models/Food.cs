@@ -16,7 +16,7 @@ namespace API.Models
         public double Protein { get; set; }
         public double Carbs { get; set; }
         public double Fat { get; set; }
-        public int CaloriesPer100g { get; set; } 
+        public int CaloriesPer100g { get; set; }
 
         public List<FoodMealType> FoodMealTypes { get; set; } = new();
     }

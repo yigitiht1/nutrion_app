@@ -26,7 +26,8 @@ namespace API.Migrations
                     Calories = table.Column<double>(type: "double", nullable: false),
                     Protein = table.Column<double>(type: "double", nullable: false),
                     Carbs = table.Column<double>(type: "double", nullable: false),
-                    Fat = table.Column<double>(type: "double", nullable: false)
+                    Fat = table.Column<double>(type: "double", nullable: false),
+                    CaloriesPer100g = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -67,7 +68,9 @@ namespace API.Migrations
                     Weight = table.Column<double>(type: "double", nullable: false),
                     Age = table.Column<int>(type: "int", nullable: false),
                     Gender = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DailyCalorieNeed = table.Column<int>(type: "int", nullable: false),
+                    CalorieDeficit = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -236,10 +239,10 @@ namespace API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     MealPlanId = table.Column<int>(type: "int", nullable: false),
-                    Day = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Day = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     MealType = table.Column<int>(type: "int", nullable: false),
-                    FoodId = table.Column<int>(type: "int", nullable: false)
+                    FoodId = table.Column<int>(type: "int", nullable: false),
+                    PortionGrams = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

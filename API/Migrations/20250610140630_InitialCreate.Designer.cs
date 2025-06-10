@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250610105552_InitialCreate")]
+    [Migration("20250610140630_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -55,6 +55,9 @@ namespace API.Migrations
 
                     b.Property<double>("Calories")
                         .HasColumnType("double");
+
+                    b.Property<int>("CaloriesPer100g")
+                        .HasColumnType("int");
 
                     b.Property<double>("Carbs")
                         .HasColumnType("double");
@@ -138,6 +141,12 @@ namespace API.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CalorieDeficit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DailyCalorieNeed")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
@@ -224,9 +233,8 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Day")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("FoodId")
                         .HasColumnType("int");
@@ -235,6 +243,9 @@ namespace API.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("MealType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortionGrams")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
