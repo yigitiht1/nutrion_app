@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250608140029_InitialCreate")]
+    [Migration("20250610105552_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -167,35 +167,6 @@ namespace API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Activity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<double>("CaloriesBurned")
-                        .HasColumnType("double");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<double>("DurationInMinutes")
-                        .HasColumnType("double");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Activities");
-                });
-
             modelBuilder.Entity("MealPlan", b =>
                 {
                     b.Property<int>("Id")
@@ -207,9 +178,6 @@ namespace API.Migrations
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<double>("TargetCalories")
-                        .HasColumnType("double");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -250,6 +218,34 @@ namespace API.Migrations
                     b.ToTable("MealPlanItems");
                 });
 
+            modelBuilder.Entity("PlannedMeal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("FoodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MealType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex("MealPlanId");
+
+                    b.ToTable("PlannedMeals");
+                });
+
             modelBuilder.Entity("UserProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -280,7 +276,8 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("UserProfiles");
                 });
@@ -326,24 +323,15 @@ namespace API.Migrations
                     b.Navigation("Meal");
                 });
 
-            modelBuilder.Entity("Activity", b =>
+            modelBuilder.Entity("MealPlan", b =>
                 {
                     b.HasOne("API.Models.User", "User")
-                        .WithMany()
+                        .WithMany("MealPlans")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MealPlan", b =>
-                {
-                    b.HasOne("API.Models.User", null)
-                        .WithMany("MealPlans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("MealPlanItem", b =>
@@ -371,11 +359,30 @@ namespace API.Migrations
                     b.Navigation("MealPlan");
                 });
 
+            modelBuilder.Entity("PlannedMeal", b =>
+                {
+                    b.HasOne("API.Models.Food", "Food")
+                        .WithMany()
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MealPlan", "MealPlan")
+                        .WithMany("PlannedMeals")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Food");
+
+                    b.Navigation("MealPlan");
+                });
+
             modelBuilder.Entity("UserProfile", b =>
                 {
                     b.HasOne("API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("UserProfile")
+                        .HasForeignKey("UserProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -395,11 +402,16 @@ namespace API.Migrations
             modelBuilder.Entity("API.Models.User", b =>
                 {
                     b.Navigation("MealPlans");
+
+                    b.Navigation("UserProfile")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MealPlan", b =>
                 {
                     b.Navigation("MealPlanItems");
+
+                    b.Navigation("PlannedMeals");
                 });
 #pragma warning restore 612, 618
         }
