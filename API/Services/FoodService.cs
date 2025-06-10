@@ -46,14 +46,22 @@ public class FoodService : IFoodService
             Fat = f.Fat,
             MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
         }).ToList();
-    }
- public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
+    }public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
 {
-    return await _context.FoodMealTypes
-        .Include(fmt => fmt.Food)      // mutlaka ekle
-        .Where(fmt => fmt.MealType == mealType)
-        .Select(fmt => fmt.Food)
-        .ToListAsync();
+    try
+    {
+        return await _context.FoodMealTypes
+            .Include(fmt => fmt.Food)
+            .Where(fmt => fmt.MealType == mealType)
+            .Select(fmt => fmt.Food)
+            .ToListAsync();
+    }
+    catch (Exception ex)
+    {
+        // Log kaydı veya konsola yazdır
+        Console.WriteLine($"[ERROR] GetFoodsByMealTypeAsync: {ex.Message}");
+        throw; // hata fırlatmaya devam et
+    }
 }
 
     Task<List<FoodDto>> IFoodService.GetFoodsByMealTypeAsync(MealType mealType)
