@@ -13,75 +13,71 @@ public class MealPlanService : IMealPlanService
 
     public async Task CreateMealPlanAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
     {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-            throw new Exception("Kullanıcı bulunamadı.");
+    var user = await _context.Users.FindAsync(userId);
+    if (user == null)
+        throw new Exception("Kullanıcı bulunamadı.");
 
-        DateTime planStartDate = startDate?.Date ?? DateTime.Now.Date;
-        DateTime planEndDate = endDate?.Date ?? DateTime.Now.Date;
+    DateTime planStartDate = startDate?.Date ?? DateTime.Now.Date;
+    DateTime planEndDate = endDate?.Date ?? DateTime.Now.Date;
 
-        int totalDays = (planEndDate - planStartDate).Days + 1;
-        if (totalDays <= 0)
-            throw new Exception("Bitiş tarihi, başlangıç tarihinden önce olamaz.");
+    int totalDays = (planEndDate - planStartDate).Days + 1;
+    if (totalDays <= 0)
+        throw new Exception("Bitiş tarihi, başlangıç tarihinden önce olamaz.");
 
-        int targetCalories = user.DailyCalorieNeed - user.CalorieDeficit;
-        if (targetCalories <= 0)
-            throw new Exception("Hedef kalori miktarı geçersiz.");
+    int targetCalories = user.DailyCalorieNeed - user.CalorieDeficit;
+    if (targetCalories <= 0)
+        throw new Exception("Hedef kalori miktarı geçersiz.");
 
-        var foods = await _context.Foods
-            .OrderBy(f => f.CaloriesPer100g)
-            .ToListAsync();
+    var foods = await _context.Foods.OrderBy(f => f.CaloriesPer100g).ToListAsync();
+    if (!foods.Any())
+        throw new Exception("Yiyecek verisi bulunamadı.");
 
-        if (!foods.Any())
-            throw new Exception("Yiyecek verisi bulunamadı.");
+    var mealPlan = new MealPlan
+    {
+        UserId = userId,
+        StartDate = planStartDate,
+        EndDate = planEndDate,
+        PlannedMeals = new List<PlannedMeal>()
+    };
 
-        var mealPlan = new MealPlan
+    int mealsPerDay = 4; // 4 öğün
+    int caloriesPerMeal = targetCalories / mealsPerDay;
+
+    for (int dayIndex = 0; dayIndex < totalDays; dayIndex++)
+    {
+        DateTime currentDay = planStartDate.AddDays(dayIndex);
+
+        for (int mealTypeIndex = 0; mealTypeIndex < mealsPerDay; mealTypeIndex++)
         {
-            UserId = userId,
-            StartDate = planStartDate,
-            EndDate = planEndDate,
-            PlannedMeals = new List<PlannedMeal>()
-        };
+            int remainingCalories = caloriesPerMeal;
 
-        int mealsPerDay = 3; 
-        int caloriesPerMeal = targetCalories / mealsPerDay;
-
-        for (int dayIndex = 0; dayIndex < totalDays; dayIndex++)
-        {
-            DateTime currentDay = planStartDate.AddDays(dayIndex);
-
-            for (int mealTypeIndex = 1; mealTypeIndex <= mealsPerDay; mealTypeIndex++)
+            foreach (var food in foods)
             {
-                int remainingCalories = caloriesPerMeal;
+                if (remainingCalories <= 0)
+                    break;
 
-                foreach (var food in foods)
+                int portionGram = 100;
+                int portionCalories = (food.CaloriesPer100g * portionGram) / 100;
+
+                if (portionCalories <= remainingCalories)
                 {
-                    if (remainingCalories <= 0)
-                        break;
-
-                    int portionGram = 100;
-                    int portionCalories = (food.CaloriesPer100g * portionGram) / 100;
-
-                    if (portionCalories <= remainingCalories)
+                    mealPlan.PlannedMeals.Add(new PlannedMeal
                     {
-                        mealPlan.PlannedMeals.Add(new PlannedMeal
-                        {
-                            Day = currentDay,  // Burada DateTime olarak bırak
-                            MealType = (MealType)mealTypeIndex,
-                            FoodId = food.Id,
-                            PortionGrams = portionGram
-                        });
+                        Day = currentDay,
+                        MealType = (MealType)mealTypeIndex,
+                        FoodId = food.Id,
+                        PortionGrams = portionGram
+                    });
 
-                        remainingCalories -= portionCalories;
-                    }
+                    remainingCalories -= portionCalories;
                 }
             }
         }
-
-        _context.MealPlans.Add(mealPlan);
-        await _context.SaveChangesAsync();
     }
 
+    _context.MealPlans.Add(mealPlan);
+    await _context.SaveChangesAsync();
+    }
     public async Task<List<MealPlanDto>> GetMealPlansByUserAsync(int userId)
     {
         var plans = await _context.MealPlans
@@ -94,22 +90,22 @@ public class MealPlanService : IMealPlanService
 
         foreach (var plan in plans)
         {
-            var groupedPlannedMeals = plan.PlannedMeals
-                .GroupBy(pm => new { pm.Day, pm.MealType })
-                .Select(g => new PlannedMealDto
-                {
-                    Day = g.Key.Day, // Burada string format kullan
-                    MealType = g.Key.MealType,
-                    Foods = g.Select(pm => new FoodDto
-                    {
-                        Name = pm.Food.Name,
-                        Calories = pm.Food.Calories,
-                        Protein = pm.Food.Protein,
-                        Carbs = pm.Food.Carbs,
-                        Fat = pm.Food.Fat,
-                        MealTypes = pm.Food.FoodMealTypes.Select(mt => mt.MealType).ToList()
-                    }).ToList()
-                }).ToList();
+          var groupedPlannedMeals = plan.PlannedMeals
+        .GroupBy(pm => new { pm.Day, pm.MealType })
+        .Select(g => new PlannedMealDto
+        {
+            Day = g.Key.Day,
+            MealType = g.Key.MealType,
+            Foods = g.Select(pm => new FoodDto
+        {
+            Name = pm.Food.Name,
+            Calories = pm.Food.Calories,
+            Protein = pm.Food.Protein,
+            Carbs = pm.Food.Carbs,
+            Fat = pm.Food.Fat,
+            MealTypes = pm.Food.FoodMealTypes.Select(mt => mt.MealType).ToList()
+        }).ToList()
+    }).ToList();
 
             result.Add(new MealPlanDto
             {
