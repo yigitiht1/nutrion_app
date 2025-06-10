@@ -44,36 +44,39 @@ public class MealPlanService : IMealPlanService
     int caloriesPerMeal = targetCalories / mealsPerDay;
 
     for (int dayIndex = 0; dayIndex < totalDays; dayIndex++)
+{
+    DateTime currentDay = planStartDate.AddDays(dayIndex);
+
+    for (int mealTypeIndex = 0; mealTypeIndex < mealsPerDay; mealTypeIndex++)
     {
-        DateTime currentDay = planStartDate.AddDays(dayIndex);
+        int remainingCalories = caloriesPerMeal;
 
-        for (int mealTypeIndex = 0; mealTypeIndex < mealsPerDay; mealTypeIndex++)
+        foreach (var food in foods)
         {
-            int remainingCalories = caloriesPerMeal;
+            if (remainingCalories <= 0)
+                break;
 
-            foreach (var food in foods)
+            
+            int maxPortionGram = remainingCalories * 100 / food.CaloriesPer100g;
+            int portionGram = Math.Min(100, maxPortionGram);
+
+            if (portionGram <= 0)
+                continue;
+
+            int portionCalories = (food.CaloriesPer100g * portionGram) / 100;
+
+            mealPlan.PlannedMeals.Add(new PlannedMeal
             {
-                if (remainingCalories <= 0)
-                    break;
+                Day = currentDay,
+                MealType = (MealType)mealTypeIndex,
+                FoodId = food.Id,
+                PortionGrams = portionGram
+            });
 
-                int portionGram = 100;
-                int portionCalories = (food.CaloriesPer100g * portionGram) / 100;
-
-                if (portionCalories <= remainingCalories)
-                {
-                    mealPlan.PlannedMeals.Add(new PlannedMeal
-                    {
-                        Day = currentDay,
-                        MealType = (MealType)mealTypeIndex,
-                        FoodId = food.Id,
-                        PortionGrams = portionGram
-                    });
-
-                    remainingCalories -= portionCalories;
-                }
-            }
+            remainingCalories -= portionCalories;
         }
     }
+}
 
     _context.MealPlans.Add(mealPlan);
     await _context.SaveChangesAsync();
