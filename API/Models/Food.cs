@@ -19,6 +19,7 @@ namespace API.Models
         public int CaloriesPer100g { get; set; }
 
         public List<FoodMealType> FoodMealTypes { get; set; } = new();
+        
     }
 
     public class FoodMealType

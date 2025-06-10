@@ -60,51 +60,51 @@ namespace API.Controllers
 
 
        [HttpPost("{userId}/calorie-goal")]
-public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
-{
-    if (userId != goalDto.UserId)
-        return BadRequest("Kullanıcı ID'si eşleşmiyor.");
-
-    // Mantıklı sınırlar kontrolü
-    if (goalDto.TargetWeight <= 0 || goalDto.TargetWeight > 300) 
-        return BadRequest("Hedef kilo geçersiz.");
-    if (goalDto.TargetDays < 7 || goalDto.TargetDays > 365) 
-        return BadRequest("Hedef gün sayısı 7 ile 365 arasında olmalıdır.");
-
-    try
-    {
-        var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
-
-        // Önerilen kalori sınır dışı ise ek kontrol
-        if (result < 1200 || result > 5000) 
-            return BadRequest("Önerilen kalori değeri sağlıklı aralıkta değil.");
-
-        return Ok(result);
-    }
-    catch (Exception ex)
-    {
-        return BadRequest(new { message = ex.Message });
-    }
-}
-        [HttpPut("{userId}/profile")]
-        public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
+        public async Task<IActionResult> CalculateGoalCalories(int userId, [FromBody] GoalDto goalDto)
         {
-            var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
-            if (existingProfile == null)
+            if (userId != goalDto.UserId)
+                return BadRequest("Kullanıcı ID'si eşleşmiyor.");
+
+            // Mantıklı sınırlar kontrolü
+            if (goalDto.TargetWeight <= 0 || goalDto.TargetWeight > 300) 
+                return BadRequest("Hedef kilo geçersiz.");
+            if (goalDto.TargetDays < 7 || goalDto.TargetDays > 365) 
+                return BadRequest("Hedef gün sayısı 7 ile 365 arasında olmalıdır.");
+
+            try
             {
-                dto.UserId = userId;
-                await _userProfileService.CreateUserProfileAsync(dto);
-                return Ok(new { message = "Profil oluşturuldu." });
+                var result = await _calorieService.CalculateCalorieGoalAsync(goalDto);
+
+                // Önerilen kalori sınır dışı ise ek kontrol
+                if (result < 1200 || result > 5000) 
+                    return BadRequest("Önerilen kalori değeri sağlıklı aralıkta değil.");
+
+                return Ok(result);
             }
-            else
+            catch (Exception ex)
             {
-                await _userProfileService.UpdateUserProfileAsync(userId, dto);
-                return Ok(new { message = "Profil güncellendi." });
+                return BadRequest(new { message = ex.Message });
             }
         }
-        
+                [HttpPut("{userId}/profile")]
+                public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
+                {
+                    var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+                    if (existingProfile == null)
+                    {
+                        dto.UserId = userId;
+                        await _userProfileService.CreateUserProfileAsync(dto);
+                        return Ok(new { message = "Profil oluşturuldu." });
+                    }
+                    else
+                    {
+                        await _userProfileService.UpdateUserProfileAsync(userId, dto);
+                        return Ok(new { message = "Profil güncellendi." });
+                    }
+                }
                 
+                        
 
-        
-    }
-}
+                
+            }
+        }

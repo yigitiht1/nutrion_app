@@ -24,29 +24,35 @@ namespace API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            
+
             modelBuilder.Entity<FoodMealType>()
                 .HasKey(fm => new { fm.FoodId, fm.MealType });
 
-          
+
             modelBuilder.Entity<FoodMealType>()
                 .HasOne(fm => fm.Food)
                 .WithMany(f => f.FoodMealTypes)
                 .HasForeignKey(fm => fm.FoodId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-           
+
             modelBuilder.Entity<MealPlan>()
                 .HasMany(mp => mp.MealPlanItems)
                 .WithOne()
                 .HasForeignKey(mpi => mpi.MealPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-          
+
             modelBuilder.Entity<MealPlan>()
                 .HasMany(mp => mp.PlannedMeals)
                 .WithOne(pm => pm.MealPlan)
                 .HasForeignKey(pm => pm.MealPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<Meal>()
+                .HasMany(m => m.MealItems)
+                .WithOne(mi => mi.Meal)
+                .HasForeignKey(mi => mi.MealId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

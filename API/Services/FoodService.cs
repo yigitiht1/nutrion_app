@@ -47,13 +47,14 @@ public class FoodService : IFoodService
             MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
         }).ToList();
     }
-    public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
-    {
-        return await _context.FoodMealTypes
-            .Where(fmt => fmt.MealType == mealType)
-            .Select(fmt => fmt.Food)
-            .ToListAsync();
-    }
+ public async Task<List<Food>> GetFoodsByMealTypeAsync(MealType mealType)
+{
+    return await _context.FoodMealTypes
+        .Include(fmt => fmt.Food)      // mutlaka ekle
+        .Where(fmt => fmt.MealType == mealType)
+        .Select(fmt => fmt.Food)
+        .ToListAsync();
+}
 
     Task<List<FoodDto>> IFoodService.GetFoodsByMealTypeAsync(MealType mealType)
     {
