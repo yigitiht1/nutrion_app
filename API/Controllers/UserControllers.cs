@@ -86,11 +86,11 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-                [HttpPut("{userId}/profile")]
-                public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
-                {
-                    var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
-                    if (existingProfile == null)
+        [HttpPut("{userId}/profile")]
+        public async Task<IActionResult> CreateOrUpdateProfile(int userId, [FromBody] UserProfileDto dto)
+        {
+             var existingProfile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+                if (existingProfile == null)
                     {
                         dto.UserId = userId;
                         await _userProfileService.CreateUserProfileAsync(dto);
@@ -101,7 +101,7 @@ namespace API.Controllers
                         await _userProfileService.UpdateUserProfileAsync(userId, dto);
                         return Ok(new { message = "Profil güncellendi." });
                     }
-                }
+        }
                 
                         
 
