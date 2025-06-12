@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250610140630_InitialCreate")]
+    [Migration("20250612150504_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,6 +28,9 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int>("RequiredCalorieDifference")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
 
@@ -42,7 +45,8 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Goals");
                 });
@@ -266,6 +270,9 @@ namespace API.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CalorieDifference")
+                        .HasColumnType("int");
+
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -296,8 +303,8 @@ namespace API.Migrations
             modelBuilder.Entity("API.Entities.Goal", b =>
                 {
                     b.HasOne("API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("Goal")
+                        .HasForeignKey("API.Entities.Goal", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -412,6 +419,9 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.User", b =>
                 {
+                    b.Navigation("Goal")
+                        .IsRequired();
+
                     b.Navigation("MealPlans");
 
                     b.Navigation("UserProfile")

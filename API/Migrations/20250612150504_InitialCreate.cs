@@ -134,7 +134,8 @@ namespace API.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false),
                     TargetWeight = table.Column<double>(type: "double", nullable: false),
                     TargetDays = table.Column<int>(type: "int", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    RequiredCalorieDifference = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -183,7 +184,8 @@ namespace API.Migrations
                     Gender = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TargetWeight = table.Column<double>(type: "double", nullable: false),
-                    TargetDays = table.Column<int>(type: "int", nullable: false)
+                    TargetDays = table.Column<int>(type: "int", nullable: false),
+                    CalorieDifference = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -265,7 +267,8 @@ namespace API.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Goals_UserId",
                 table: "Goals",
-                column: "UserId");
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MealItems_FoodId",
