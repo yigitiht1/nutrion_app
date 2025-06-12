@@ -21,16 +21,7 @@ public class FoodController : ControllerBase
         return Ok(foods);
     }
 
-    // Öğün tipine göre yiyecekleri getir
-
-
-    [HttpPost]
-    public async Task<IActionResult> AddFood(FoodDto foodDto)
-    {
-        await _foodService.AddFoodAsync(foodDto);
-        return Ok(new { message = "Yemek eklendi." });
-    }
-    [HttpGet("meal/{mealType}")]
+     [HttpGet("meal/{mealType}")]
     public async Task<IActionResult> GetFoodsByMealType(string mealType)
     {
         if (!Enum.TryParse<MealType>(mealType, true, out var parsedMealType))
@@ -41,4 +32,12 @@ public class FoodController : ControllerBase
         var foods = await _foodService.GetFoodsByMealTypeAsync(parsedMealType);
         return Ok(foods);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> AddFood(FoodDto foodDto)
+    {
+        await _foodService.AddFoodAsync(foodDto);
+        return Ok(new { message = "Yemek eklendi." });
+    }
+   
 }
