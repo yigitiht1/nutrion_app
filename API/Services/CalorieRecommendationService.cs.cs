@@ -237,7 +237,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             AlertMessage = alertMessage
         };
     }
-
+//merhaba
     private List<ActivityDto> GetDefaultActivities()
     {
         return new List<ActivityDto>
