@@ -19,7 +19,7 @@ public class FoodController : ControllerBase
         return Ok(foods);
     }
 
-     [HttpGet("meal/{mealType}")]//new
+     [HttpGet("meal/{mealType}")]
     public async Task<IActionResult> GetFoodsByMealType(string mealType)
     {
         if (!Enum.TryParse<MealType>(mealType, true, out var parsedMealType))
