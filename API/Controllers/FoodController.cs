@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Services;
-using API.DTOs;
 using API.Models;
 
 [ApiController]

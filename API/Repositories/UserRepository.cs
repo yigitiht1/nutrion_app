@@ -2,8 +2,7 @@ using API.Data;
 using API.Models;
 using API.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace API.Repositories
 {
