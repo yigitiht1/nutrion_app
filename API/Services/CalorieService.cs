@@ -20,12 +20,16 @@ public async Task<double> CalculateCalorieGoalAsync(GoalDto goalDto)
     if (profile == null)
         throw new ArgumentException("Kullanıcı profili bulunamadı.");
 
-    // 2. Kullanıcı profilini güncelle
+    // 2. Gelen hedef gün sayısı geçerli mi kontrol et
+    if (goalDto.TargetDays <= 0)
+        throw new ArgumentException("Hedef gün sayısı 0 veya negatif olamaz.");
+
+    // 3. Kullanıcı profilini güncelle
     profile.TargetWeight = goalDto.TargetWeight;
     profile.TargetDays = goalDto.TargetDays;
     await _context.SaveChangesAsync();
 
-    // 3. Goal tablosunu getir ya da oluştur
+    // 4. Goal tablosunu güncelle veya oluştur
     var existingGoal = await _context.Goals.FirstOrDefaultAsync(g => g.UserId == goalDto.UserId);
     if (existingGoal == null)
     {
@@ -46,37 +50,27 @@ public async Task<double> CalculateCalorieGoalAsync(GoalDto goalDto)
     }
     await _context.SaveChangesAsync();
 
-    // 4. Kalan gün sayısını hesapla — burada 0 kalmaması için düzeltilmiş hali
-    int remainingDays;
+    // 5. Kalan gün sayısını hesapla (pozitif olmalı)
     var today = DateTime.UtcNow.Date;
+    var endDate = existingGoal.StartDate.AddDays(existingGoal.TargetDays);
 
-    if (existingGoal.StartDate.Date <= today)
-    {
-        // Bugünün tarihi ile hedef bitiş tarihi arasında kalan gün sayısı
-        var endDate = existingGoal.StartDate.AddDays(existingGoal.TargetDays);
-        remainingDays = (endDate - today).Days;
-    }
-    else
-    {
-        // Hedef gelecek tarihte başlayacaksa, doğrudan hedef gün sayısını kullan
-        remainingDays = existingGoal.TargetDays;
-    }
+    int remainingDays = (endDate - today).Days;
 
     if (remainingDays <= 0)
-        throw new InvalidOperationException("Hedef gün sayısı geçerli değil.");
+        throw new InvalidOperationException("Hedef süresi dolmuş veya geçersiz.");
 
-    // 5. Toplam kalori farkını hesapla (1 kg ≈ 7700 kalori)
+    // 6. Kalori hesabı
     double totalCaloriesToChange = (profile.Weight - goalDto.TargetWeight) * 7700;
     double dailyCalorieChange = totalCaloriesToChange / remainingDays;
 
-    // 6. BMR (Bazal Metabolizma Hızı) hesapla
+    // BMR hesapla (Mifflin-St Jeor Formülü)
     double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age +
                  (profile.Gender.ToLower() == "male" ? 5 : -161);
 
-    // 7. Günlük kalori hedefi = BMR * hareketsizlik katsayısı - günlük değişim
+    // Aktivite faktörü olarak 1.2 (çok az aktif) sabit kullanıldı. İstersen burayı genişletebilirsin.
     double dailyCalorieNeed = bmr * 1.2 - dailyCalorieChange;
 
-    return Math.Round(dailyCalorieNeed, 2);
+    return dailyCalorieNeed;
 }
 
     public async Task<BmiAndCalorieDto> CalculateBmiAndCalorieAsync(int userId, int totalCaloriesToday)
