@@ -21,12 +21,19 @@ public class WeightTrackingController : ControllerBase
         return Ok(history);
     }
 
-   [HttpPost("update-weight")]
+    [HttpPost("update-weight")]
     public async Task<IActionResult> UpdateWeight([FromBody] UpdateWeightDto dto)
     {
         var result = await _weightTrackingService.UpdateUserWeightAsync(dto.UserId, dto.NewWeight);
         if (!result) return BadRequest("Kilo güncellenemedi.");
         return Ok("Kilo başarıyla güncellendi.");
+    }
+
+    [HttpDelete("delete-by-date")]
+    public async Task<IActionResult> DeleteByDate(int userId, DateTime date)
+    {
+        var result = await _weightTrackingService.DeleteWeightRecordByDateAsync(userId, date);
+        return result ? Ok("Kayıt silindi.") : NotFound("Kayıt bulunamadı.");
     }
 
 }

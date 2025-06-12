@@ -47,5 +47,9 @@ namespace API.Repositories
                 .Include(u => u.UserProfile)
                 .ToListAsync();
         }
+        public void DeleteUser(User user)
+        {
+            _context.Users.Remove(user);
+        }
     }
 }

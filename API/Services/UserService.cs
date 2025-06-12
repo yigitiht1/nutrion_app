@@ -68,6 +68,16 @@ namespace API.Services
 
             return true;
         }
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            _userRepository.DeleteUser(user);
+            await _userRepository.SaveChangesAsync();
+            return true;
+        }
 
         public async Task<User?> LoginAsync(string email, string password)
         {

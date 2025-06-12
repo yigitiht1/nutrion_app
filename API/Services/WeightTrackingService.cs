@@ -26,29 +26,43 @@ public class WeightTrackingService : IWeightTrackingService
         return history;
     }
     public async Task<bool> UpdateUserWeightAsync(int userId, double newWeight)
-{
-    try
     {
-        var profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
-        if (profile == null) return false;
-
-        profile.Weight = newWeight;
-
-        var weightRecord = new WeightTracking
+        try
         {
-            UserId = userId,
-            Weight = newWeight,
-            Date = DateTime.UtcNow
-        };
-        _context.WeightTrackings.Add(weightRecord);
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (profile == null) return false;
 
+            profile.Weight = newWeight;
+
+            var weightRecord = new WeightTracking
+            {
+                UserId = userId,
+                Weight = newWeight,
+                Date = DateTime.UtcNow
+            };
+            _context.WeightTrackings.Add(weightRecord);
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Weight update error: " + ex.Message);
+            return false;
+        }
+    }
+    public async Task<bool> DeleteWeightRecordByDateAsync(int userId, DateTime date)
+{
+    var record = await _context.WeightTrackings
+        .FirstOrDefaultAsync(w => w.UserId == userId && w.Date.Date == date.Date);
+
+    if (record != null)
+    {
+        _context.WeightTrackings.Remove(record);
         await _context.SaveChangesAsync();
         return true;
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Weight update error: " + ex.Message);
-        return false;
-    }
+
+    return false;
 }
 }

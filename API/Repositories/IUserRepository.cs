@@ -8,6 +8,7 @@ namespace API.Repositories
     {
         Task<User?> GetUserByEmailAsync(string email);
         Task AddUserAsync(User user);
+         void DeleteUser(User user);
         Task SaveChangesAsync();
         Task<List<User>> GetAllUsersAsync();
         Task<User?> GetUserByIdAsync(int id);
