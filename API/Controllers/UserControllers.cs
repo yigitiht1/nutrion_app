@@ -118,5 +118,29 @@ namespace API.Controllers
                 return Ok(new { message = "Profil güncellendi." });
             }
         }
+        [HttpGet("{userId}/daily-calorie")]
+    public async Task<IActionResult> GetDailyCalorieNeed(int userId)
+    {
+        try
+        {
+            var profile = await _userProfileService.GetUserProfileByUserIdAsync(userId);
+            if (profile == null)
+                return NotFound(new { message = "Kullanıcı profili bulunamadı." });
+
+            // Basal Metabolic Rate (BMR) + Hafif aktivite çarpanı
+            double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age + (profile.Gender.ToLower() == "male" ? 5 : -161);
+            double dailyCalorieNeed = bmr * 1.2;
+
+            return Ok(new
+            {
+                DailyCalorieNeed = Math.Round(dailyCalorieNeed, 2),
+                Message = "Bu, mevcut profilinize göre önerilen günlük kalori ihtiyacıdır."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Bir hata oluştu.", error = ex.Message });
+        }
+    }
     }
 }
