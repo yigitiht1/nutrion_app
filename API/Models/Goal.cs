@@ -18,6 +18,14 @@ namespace API.Entities
 
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
 
+        public int RequiredCalorieDifference { get; set; }
+
+       public int RemainingDays =>
+        Math.Max(0, TargetDays - (DateTime.UtcNow.Date - StartDate.Date).Days);
+
+                                
+
         public virtual User User { get; set; }
+
     }
 }

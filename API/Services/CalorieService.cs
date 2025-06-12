@@ -1,5 +1,6 @@
 using API.Data;
 using API.DTOs;
+using API.Entities;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,26 +13,40 @@ public class CalorieService : ICalorieService
         _context = context;
     }
 
-    public async Task<double> CalculateCalorieGoalAsync(GoalDto goalDto)
-    {
-        var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == goalDto.UserId);
-        if (profile == null)
-            throw new ArgumentException("Kullanıcı profili bulunamadı.");
+public async Task<double> CalculateCalorieGoalAsync(GoalDto goalDto)
+{
+    var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == goalDto.UserId);
+    if (profile == null) throw new ArgumentException("Kullanıcı profili bulunamadı.");
 
-        profile.TargetWeight = goalDto.TargetWeight;
-        profile.TargetDays = goalDto.TargetDays;
+    // 1. Hedef veritabanına yaz
+    profile.TargetWeight = goalDto.TargetWeight;
+    profile.TargetDays = goalDto.TargetDays;
+    await _context.SaveChangesAsync();
 
-        await _context.SaveChangesAsync();
-
-        double totalCaloriesToChange = (profile.Weight - goalDto.TargetWeight) * 7700;
-        double dailyCalorieChange = totalCaloriesToChange / goalDto.TargetDays;
-
-        double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age + (profile.Gender.ToLower() == "male" ? 5 : -161);
-
-        double dailyCalorieNeed = bmr * 1.2 - dailyCalorieChange;
-
-        return dailyCalorieNeed;
+    // 2. Goal tablosuna da güncelle (varsa)
+    var goal = await _context.Goals.FirstOrDefaultAsync(g => g.UserId == goalDto.UserId);
+    if (goal == null) {
+        _context.Goals.Add(new Goal {
+            UserId = goalDto.UserId,
+            TargetWeight = goalDto.TargetWeight,
+            TargetDays = goalDto.TargetDays,
+            StartDate = goalDto.StartDate
+        });
+    } else {
+        goal.TargetWeight = goalDto.TargetWeight;
+        goal.TargetDays = goalDto.TargetDays;
+        goal.StartDate = goalDto.StartDate;
     }
+    await _context.SaveChangesAsync();
+
+    // 3. Günlük kalori hedefini hesapla
+    double totalCaloriesToChange = (profile.Weight - goalDto.TargetWeight) * 7700;
+    double dailyCalorieChange = totalCaloriesToChange / goal.RemainingDays;
+    double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age + (profile.Gender.ToLower() == "male" ? 5 : -161);
+    double dailyCalorieNeed = bmr * 1.2 - dailyCalorieChange;
+
+    return dailyCalorieNeed;
+}
 
     public async Task<BmiAndCalorieDto> CalculateBmiAndCalorieAsync(int userId, int totalCaloriesToday)
     {

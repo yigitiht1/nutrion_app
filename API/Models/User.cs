@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
+using API.Entities;
 
 namespace API.Models
 {
@@ -21,8 +22,8 @@ namespace API.Models
         public double Weight { get; set; } // kg
         public int Age { get; set; }
         public string Gender { get; set; } = string.Empty;
-         public int DailyCalorieNeed { get; set; } 
-         public int CalorieDeficit { get; set; } 
+        public int DailyCalorieNeed { get; set; }
+        public int CalorieDeficit { get; set; }
 
         public void SetPassword(string password)
         {
@@ -38,7 +39,8 @@ namespace API.Models
             return PasswordHash == Convert.ToBase64String(hashedBytes);
         }
         public List<MealPlan> MealPlans { get; set; } = new();
-        public UserProfile UserProfile { get; set; } // BU NAVIGATION PROPERTY OLMALI
+        public UserProfile UserProfile { get; set; }
+        public Goal Goal { get; set; }
     }
         
 

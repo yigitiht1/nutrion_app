@@ -10,8 +10,10 @@ public class UserProfile
     public int Age { get; set; }
     public string Gender { get; set; }
 
-    public double TargetWeight { get; set; }   // EKLENDİ
-    public int TargetDays { get; set; }        // EKLENDİ
+    public double TargetWeight { get; set; }   
+    public int TargetDays { get; set; }  
+    public int? CalorieDifference { get; set; }
+         
     [ForeignKey("UserId")]
     public User User { get; set; }
 

@@ -132,5 +132,11 @@ namespace API.Services
             var hashOfInput = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
             return hashOfInput == hashedPassword;
         }
+        public int CalculateRemainingDays(DateTime targetDate)
+        {
+            var today = DateTime.UtcNow.Date;
+            var remaining = (targetDate.Date - today).Days;
+            return remaining > 0 ? remaining : 0;
+        }
     }
 }
