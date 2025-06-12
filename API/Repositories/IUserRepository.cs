@@ -11,5 +11,6 @@ namespace API.Repositories
         Task SaveChangesAsync();
         Task<List<User>> GetAllUsersAsync();
         Task<User?> GetUserByIdAsync(int id);
+        Task<IEnumerable<User>> GetAllUsersWithProfileAsync();
     }
 }

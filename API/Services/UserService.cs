@@ -18,19 +18,19 @@ namespace API.Services
             _userProfileService = userProfileService;
         }
 
-        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+      public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-            var users = await _userRepository.GetAllUsersAsync();
+            var users = await _userRepository.GetAllUsersWithProfileAsync();
 
             return users.Select(u => new UserDto
             {
                 Id = u.Id,
                 Name = u.Name,
                 Email = u.Email,
-                Height = u.Height,
-                Weight = u.Weight,
-                Age = u.Age,
-                Gender = u.Gender
+                Height = u.UserProfile?.Height ?? u.Height,
+                Weight = u.UserProfile?.Weight ?? u.Weight, // ⬅️ Artık güncel kilo buradan alınır
+                Age = u.UserProfile?.Age ?? u.Age,
+                Gender = u.UserProfile?.Gender ?? u.Gender
             });
         }
 

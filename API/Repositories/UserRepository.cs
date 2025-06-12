@@ -41,5 +41,11 @@ namespace API.Repositories
         {
             return await _context.Users.FindAsync(id);
         }
+        public async Task<IEnumerable<User>> GetAllUsersWithProfileAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserProfile)
+                .ToListAsync();
+        }
     }
 }
