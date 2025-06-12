@@ -50,7 +50,7 @@ namespace API.Controllers
                 if (profile == null)
                     return NotFound(new { message = "Kullanıcı profili bulunamadı." });
 
-                // Basal Metabolic Rate (BMR) + Hafif aktivite çarpanı
+              
                 double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age + (profile.Gender.ToLower() == "male" ? 5 : -161);
                 double dailyCalorieNeed = bmr * 1.2;
 
