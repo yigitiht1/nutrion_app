@@ -22,6 +22,7 @@ builder.Services.AddScoped<IMealService, MealService>();
 builder.Services.AddScoped<ICalorieService, CalorieService>();
 builder.Services.AddScoped<ICalorieRecommendationService, CalorieRecommendationService>();
 builder.Services.AddScoped<IMealPlanService, MealPlanService>();
+builder.Services.AddScoped<IWeightTrackingService, WeightTrackingService>();
 
 
 

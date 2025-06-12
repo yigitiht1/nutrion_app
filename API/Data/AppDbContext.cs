@@ -15,6 +15,7 @@ namespace API.Data
         public DbSet<Food> Foods { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<FoodMealType> FoodMealTypes { get; set; }
+        public DbSet<WeightTracking> WeightTrackings { get; set; }
 
         public DbSet<PlannedMeal> PlannedMeals { get; set; }
         public DbSet<MealPlan> MealPlans { get; set; }
