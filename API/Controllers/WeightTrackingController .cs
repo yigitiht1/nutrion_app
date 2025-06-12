@@ -21,24 +21,12 @@ public class WeightTrackingController : ControllerBase
         return Ok(history);
     }
 
-    [HttpPost("update-weight")]
-    public async Task<IActionResult> UpdateWeight([FromBody] UpdateWeightRequest request)
+   [HttpPost("update-weight")]
+    public async Task<IActionResult> UpdateWeight([FromBody] UpdateWeightDto dto)
     {
-        if (request.NewWeight <= 0)
-            return BadRequest("Geçersiz kilo değeri.");
-
-        var success = await _weightTrackingService.UpdateUserWeightAsync(request.UserId, request.NewWeight);
-
-        if (!success)
-            return NotFound("Kullanıcı profili bulunamadı.");
-
-        return Ok("Kilo güncellendi.");
+        var result = await _weightTrackingService.UpdateUserWeightAsync(dto.UserId, dto.NewWeight);
+        if (!result) return BadRequest("Kilo güncellenemedi.");
+        return Ok("Kilo başarıyla güncellendi.");
     }
 
-}
-
-public class UpdateWeightRequest
-{
-    public int UserId { get; set; }
-    public double NewWeight { get; set; }
 }

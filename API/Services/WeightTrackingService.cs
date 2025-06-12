@@ -10,15 +10,30 @@ public class WeightTrackingService : IWeightTrackingService
         _context = context;
     }
 
+
+    public async Task<List<WeightHistoryDto>> GetWeightHistoryAsync(int userId)
+    {
+        var history = await _context.WeightTrackings
+            .Where(w => w.UserId == userId)
+            .OrderBy(w => w.Date)
+            .Select(w => new WeightHistoryDto
+            {
+                Date = w.Date,
+                Weight = w.Weight
+            })
+            .ToListAsync();
+
+        return history;
+    }
     public async Task<bool> UpdateUserWeightAsync(int userId, double newWeight)
+{
+    try
     {
         var profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
         if (profile == null) return false;
 
-        // Mevcut kiloyu güncelle
         profile.Weight = newWeight;
 
-        // Kilo takip kaydını ekle
         var weightRecord = new WeightTracking
         {
             UserId = userId,
@@ -30,18 +45,10 @@ public class WeightTrackingService : IWeightTrackingService
         await _context.SaveChangesAsync();
         return true;
     }
-    public async Task<List<WeightHistoryDto>> GetWeightHistoryAsync(int userId)
-{
-    var history = await _context.WeightTrackings
-        .Where(w => w.UserId == userId)
-        .OrderBy(w => w.Date)
-        .Select(w => new WeightHistoryDto
-        {
-            Date = w.Date,
-            Weight = w.Weight
-        })
-        .ToListAsync();
-
-    return history;
+    catch (Exception ex)
+    {
+        Console.WriteLine("Weight update error: " + ex.Message);
+        return false;
+    }
 }
 }
