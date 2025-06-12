@@ -141,14 +141,14 @@ namespace API.Controllers
             }
         }
        
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser(int userId)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            var result = await _userService.DeleteUserAsync(userId);
+            var result = await _userService.DeleteUserAsync(id);
             if (!result)
                 return NotFound(new { message = "Kullanıcı bulunamadı." });
-            
-            return NoContent(); // 204 döner, başarılı silme
+
+            return Ok(new { message = "Kayıt başarıyla silindi." });
         }
     }
 }
