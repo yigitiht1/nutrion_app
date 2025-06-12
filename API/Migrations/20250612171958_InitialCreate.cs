@@ -200,6 +200,28 @@ namespace API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "WeightTrackings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<double>(type: "double", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeightTrackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WeightTrackings_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "MealPlanItems",
                 columns: table => new
                 {
@@ -315,6 +337,11 @@ namespace API.Migrations
                 table: "UserProfiles",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeightTrackings_UserId",
+                table: "WeightTrackings",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -337,6 +364,9 @@ namespace API.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserProfiles");
+
+            migrationBuilder.DropTable(
+                name: "WeightTrackings");
 
             migrationBuilder.DropTable(
                 name: "Meals");

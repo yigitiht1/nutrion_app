@@ -297,6 +297,28 @@ namespace API.Migrations
                     b.ToTable("UserProfiles");
                 });
 
+            modelBuilder.Entity("WeightTracking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WeightTrackings");
+                });
+
             modelBuilder.Entity("API.Entities.Goal", b =>
                 {
                     b.HasOne("API.Models.User", "User")
@@ -398,6 +420,17 @@ namespace API.Migrations
                     b.HasOne("API.Models.User", "User")
                         .WithOne("UserProfile")
                         .HasForeignKey("UserProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WeightTracking", b =>
+                {
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
