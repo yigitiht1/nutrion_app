@@ -115,6 +115,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
     // ASENKRON versiyon (hedef kilo ve süreyi hesaba katar)
     public async Task<RecommendationDto> GetRecommendationForUserAsync(int userId, int dayOffset)
     {
+        // Kullanıcı profili çekiliyor
         var profile = await _context.UserProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId);
@@ -122,6 +123,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         if (profile == null)
             return new RecommendationDto { AlertMessage = "Kullanıcı profili bulunamadı." };
 
+        // Kullanıcının hedef bilgisi çekiliyor
         var goal = await _context.Goals
             .AsNoTracking()
             .FirstOrDefaultAsync(g => g.UserId == userId);
@@ -237,20 +239,19 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             AlertMessage = alertMessage
         };
     }
-//merhaba
+
     private List<ActivityDto> GetDefaultActivities()
     {
         return new List<ActivityDto>
-        {
-            new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
-            new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
-            new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
-            new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
-            new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
-            new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
-            new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
-            new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
-        };
+    {
+        new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
+        new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
+        new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
+        new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
+        new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
+        new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
+        new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
+        new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
+    };
     }
 }
-
