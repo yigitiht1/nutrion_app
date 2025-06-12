@@ -5,6 +5,8 @@ public class RecommendationDto
     public double TotalProtein { get; set; }
     public double TotalCarbs { get; set; }
     public double TotalFat { get; set; }
+    
+    public int RemainingDays { get; set; }
     public List<RecommendedFoodDto> RecommendedFoods { get; set; } = new();
     public List<ActivityDto> RecommendedActivities { get; set; } = new();
 

@@ -16,7 +16,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         _context = context;
     }
 
-    // Senkron versiyon, mevcut hesaplamaları koruyoruz
+    // SENKRON versiyon (mevcut hesaplamaları koruyor)
     public RecommendationDto? GetRecommendationForUser(int userId)
     {
         try
@@ -27,10 +27,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                 .FirstOrDefault(p => p.UserId == userId);
 
             if (profile == null)
-                return new RecommendationDto
-                {
-                    AlertMessage = "Kullanıcı profili bulunamadı."
-                };
+                return new RecommendationDto { AlertMessage = "Kullanıcı profili bulunamadı." };
 
             double bmi = profile.CalculateBMI();
             double goalCalories = profile.CalculateRecommendedCalories();
@@ -45,14 +42,9 @@ public class CalorieRecommendationService : ICalorieRecommendationService
                     .ThenInclude(mi => mi.Food)
                 .ToList();
 
-            var mealItems = todayMeals
-                .SelectMany(m => m.MealItems)
-                .Where(mi => mi.Food != null)
-                .ToList();
+            var mealItems = todayMeals.SelectMany(m => m.MealItems).Where(mi => mi.Food != null).ToList();
 
             int totalCaloriesToday = (int)Math.Round(mealItems.Sum(mi => mi.Food.Calories * mi.Quantity));
-
-            // BURADA TOPLAM MAKRO BESİN HESABI BOZULMADI
             double totalProteinToday = mealItems.Sum(mi => mi.Food.Protein * mi.Quantity);
             double totalCarbsToday = mealItems.Sum(mi => mi.Food.Carbs * mi.Quantity);
             double totalFatToday = mealItems.Sum(mi => mi.Food.Fat * mi.Quantity);
@@ -94,17 +86,7 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             }
             else
             {
-                var recommendedActivities = new List<ActivityDto>
-                {
-                    new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
-                    new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
-                    new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
-                    new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
-                    new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
-                    new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
-                    new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
-                    new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
-                };
+                var recommendedActivities = GetDefaultActivities();
 
                 string alertMessage = difference > 500
                     ? "Kalori fazlalığınız yüksek, önerilen aktiviteleri yaparak dengeleyin."
@@ -126,14 +108,11 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] GetRecommendationForUser: {ex.Message}");
-            return new RecommendationDto
-            {
-                AlertMessage = "Bir hata oluştu, lütfen tekrar deneyin."
-            };
+            return new RecommendationDto { AlertMessage = "Bir hata oluştu, lütfen tekrar deneyin." };
         }
     }
 
-    // Asenkron versiyon, hedef kilo ve süreye göre doğru hesaplama yapıyor
+    // ASENKRON versiyon (hedef kilo ve süreyi hesaba katar)
     public async Task<RecommendationDto> GetRecommendationForUserAsync(int userId, int day)
     {
         var profile = await _context.UserProfiles
@@ -152,20 +131,18 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         string alertMessage = "";
         int calorieDifference = 0;
 
-        // Hedef kilo ve süre varsa hesaplama yapılır
         if (goal != null && goal.TargetDays >= 7 && goal.TargetWeight > 0)
         {
             int daysPassed = (DateTime.UtcNow.Date - goal.StartDate.Date).Days;
             int remainingDays = Math.Max(1, goal.TargetDays - daysPassed);
             double weightDiff = profile.Weight - goal.TargetWeight;
-            double totalCalorieChange = weightDiff * 7700; // 1 kg yağ = 7700 kalori
+            double totalCalorieChange = weightDiff * 7700;
             double dailyCalorieChange = totalCalorieChange / remainingDays;
 
-            // BMR (Bazal Metabolizma Hızı) hesaplama (Mifflin-St Jeor Formülü)
             double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age +
                          (profile.Gender.ToLower() == "male" ? 5 : -161);
 
-            recommendedCalories = bmr * 1.2 - dailyCalorieChange; // 1.2: Hafif aktivite katsayısı
+            recommendedCalories = bmr * 1.2 - dailyCalorieChange;
             calorieDifference = (int)Math.Round(dailyCalorieChange);
 
             if (weightDiff > 0)
@@ -180,20 +157,17 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             }
             else
             {
-                recommendationType = "maintenance";
                 alertMessage = "Hedef kilonuz mevcut kilonuzla aynı.";
             }
         }
         else
         {
-            // Hedef yoksa varsayılan öneri (BMR * Aktivite katsayısı)
             double bmr = 10 * profile.Weight + 6.25 * profile.Height - 5 * profile.Age +
                          (profile.Gender.ToLower() == "male" ? 5 : -161);
             recommendedCalories = bmr * 1.2;
             alertMessage = "Hedef bilgisi bulunamadı. Günlük öneri mevcut kilonuza göre yapıldı.";
         }
 
-        // Bugünün yemek tüketimi (kullanıcının güncel kalori alımı)
         var today = DateTime.UtcNow.Date;
 
         var todayMeals = await _context.Meals
@@ -207,19 +181,16 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             .ToList();
 
         double totalCaloriesToday = mealItems.Sum(mi => mi.Food.Calories * mi.Quantity);
-
-        // Burada makro besinler tekrar hesaplanıyor, senin bozmaman gereken kısım:
         double totalProteinToday = mealItems.Sum(mi => mi.Food.Protein * mi.Quantity);
         double totalCarbsToday = mealItems.Sum(mi => mi.Food.Carbs * mi.Quantity);
         double totalFatToday = mealItems.Sum(mi => mi.Food.Fat * mi.Quantity);
 
         int calorieDiff = (int)Math.Round(totalCaloriesToday - recommendedCalories);
 
-        // Dummy öneriler
         var foodRecommendations = new List<RecommendedFoodDto>();
         var activityRecommendations = new List<ActivityDto>();
 
-        if (calorieDiff < 0 && Math.Abs(calorieDiff) > 200) // Kalori açığı varsa
+        if (calorieDiff < 0 && Math.Abs(calorieDiff) > 200)
         {
             foodRecommendations = _context.Foods
                 .AsNoTracking()
@@ -240,37 +211,38 @@ public class CalorieRecommendationService : ICalorieRecommendationService
         }
         else if (calorieDiff > 0)
         {
-            activityRecommendations = new List<ActivityDto>
-    {
-        new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
-        new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
-        new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
-        new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
-        new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
-        new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
-        new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
-        new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
-    };
+            activityRecommendations = GetDefaultActivities();
 
             alertMessage = calorieDiff > 500
                 ? "Kalori fazlalığınız yüksek, önerilen aktiviteleri yaparak dengeleyin."
                 : "Bir miktar kalori fazlanız var, hareket etmeye devam edin.";
         }
-        else
-        {
-            alertMessage = "Günlük kalori alımınız hedefinizle uyumlu.";
-        }
 
         return new RecommendationDto
         {
             CalorieDifference = calorieDiff,
-            RecommendationType = calorieDiff < 0 ? "Deficit" : calorieDiff > 0 ? "Surplus" : "Maintenance",
+            RecommendationType = recommendationType,
             TotalProtein = totalProteinToday,
             TotalCarbs = totalCarbsToday,
             TotalFat = totalFatToday,
             RecommendedFoods = foodRecommendations,
             RecommendedActivities = activityRecommendations,
             AlertMessage = alertMessage
+        };
+    }
+
+    private List<ActivityDto> GetDefaultActivities()
+    {
+        return new List<ActivityDto>
+        {
+            new ActivityDto { Name = "60 Dakika Koşu", CaloriesBurned = 900 },
+            new ActivityDto { Name = "30 Dakika Bisiklet", CaloriesBurned = 270 },
+            new ActivityDto { Name = "45 Dakika Merdiven Çıkma", CaloriesBurned = 450 },
+            new ActivityDto { Name = "60 Dakika Yüzme", CaloriesBurned = 720 },
+            new ActivityDto { Name = "45 Dakika Zumba", CaloriesBurned = 400 },
+            new ActivityDto { Name = "30 Dakika İp Atlama", CaloriesBurned = 450 },
+            new ActivityDto { Name = "60 Dakika Basketbol", CaloriesBurned = 480 },
+            new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
         };
     }
 }
