@@ -92,15 +92,24 @@ namespace API.Controllers
                     i.Food.Carbs,
                     i.Quantity
                 }),
-                TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity)
+                TotalMealCalories = m.MealItems.Sum(i => i.Food.Calories * i.Quantity),
+                TotalMealProtein = m.MealItems.Sum(i => i.Food.Protein * i.Quantity),
+                TotalMealCarbs = m.MealItems.Sum(i => i.Food.Carbs * i.Quantity),
+                TotalMealFat = m.MealItems.Sum(i => i.Food.Fat * i.Quantity),
             });
 
             int totalCalories = (int)meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Calories * i.Quantity);
+            double totalProtein = meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Protein * i.Quantity);
+            double totalCarbs = meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Carbs * i.Quantity);
+            double totalFat = meals.SelectMany(m => m.MealItems).Sum(i => i.Food.Fat * i.Quantity);
 
             return Ok(new
             {
                 Meals = response,
-                TotalCalories = totalCalories
+                TotalCalories = totalCalories,
+                TotalProtein = totalProtein,
+                TotalCarbs = totalCarbs,
+                TotalFat = totalFat
             });
         }
         [HttpGet("history/{userId}")]
