@@ -259,4 +259,4 @@ public class CalorieRecommendationService : ICalorieRecommendationService
             new ActivityDto { Name = "60 Dakika Hızlı Yürüyüş", CaloriesBurned = 360 }
         };
     }
-}
+} //new
