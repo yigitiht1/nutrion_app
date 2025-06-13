@@ -19,7 +19,7 @@ public class FoodController : ControllerBase
         return Ok(foods);
     }
 
-     [HttpGet("meal/{mealType}")]
+    [HttpGet("meal/{mealType}")]
     public async Task<IActionResult> GetFoodsByMealType(string mealType)
     {
         if (!Enum.TryParse<MealType>(mealType, true, out var parsedMealType))
@@ -37,5 +37,14 @@ public class FoodController : ControllerBase
         await _foodService.AddFoodAsync(foodDto);
         return Ok(new { message = "Yemek eklendi." });
     }
+    [HttpDelete("{name}")]
+public async Task<IActionResult> DeleteFood(string name)
+{
+    var success = await _foodService.DeleteFoodAsync(name);
+    if (!success)
+        return NotFound(new { message = "Yemek bulunamadı." });
+
+    return Ok(new { message = "Yemek silindi." });
+}
    
 }

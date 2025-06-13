@@ -25,7 +25,7 @@ namespace API.Entities
 
                                 
 
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
     }
 }

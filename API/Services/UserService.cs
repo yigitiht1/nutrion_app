@@ -1,9 +1,6 @@
 using API.DTOs;
 using API.Models;
 using API.Repositories;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace API.Services
 {
@@ -28,7 +25,7 @@ namespace API.Services
                 Name = u.Name,
                 Email = u.Email,
                 Height = u.UserProfile?.Height ?? u.Height,
-                Weight = u.UserProfile?.Weight ?? u.Weight, // ⬅️ Artık güncel kilo buradan alınır
+                Weight = u.UserProfile?.Weight ?? u.Weight, 
                 Age = u.UserProfile?.Age ?? u.Age,
                 Gender = u.UserProfile?.Gender ?? u.Gender
             });
@@ -54,7 +51,7 @@ namespace API.Services
             await _userRepository.AddUserAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            // Kayıt başarılı, profil oluştur
+
             var userProfileDto = new UserProfileDto
             {
                 UserId = user.Id,
@@ -98,7 +95,7 @@ namespace API.Services
 
         public BmiAndCalorieDto CalculateBmiAndCalorie(User user, int totalCaloriesToday)
         {
-            // BMI hesaplama ve kalori önerisi örneği
+          
             var heightMeters = user.Height / 100;
             var bmi = user.Weight / (heightMeters * heightMeters);
             string category;
@@ -107,7 +104,7 @@ namespace API.Services
             else if (bmi < 30) category = "Fazla Kilolu";
             else category = "Obez";
 
-            int recommendedCalories = 2000; // basit sabit öneri, gerçek formül ile değiştirilebilir
+            int recommendedCalories = 2000; 
 
             return new BmiAndCalorieDto
             {
@@ -129,16 +126,16 @@ namespace API.Services
             return CalculateBmiAndCalorie(user, totalCaloriesConsumedToday);
         }
 
-        // Örnek şifre hashleme (basit)
+   
         private string HashPassword(string password)
         {
-            // Gerçek projede güvenli bir hashleme algoritması kullan
+          
             return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
         }
 
         private bool VerifyPassword(string password, string hashedPassword)
         {
-            // Gerçek projede güvenli doğrulama yap
+     
             var hashOfInput = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
             return hashOfInput == hashedPassword;
         }

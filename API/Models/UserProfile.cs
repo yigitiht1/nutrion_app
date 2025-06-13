@@ -5,23 +5,31 @@ public class UserProfile
 {
     public int Id { get; set; }
     public int UserId { get; set; }
+    public string? UserName { get; set; } 
     public double Height { get; set; }
     public double Weight { get; set; }
     public int Age { get; set; }
-    public string Gender { get; set; }
+    public string? Gender { get; set; }
 
     public double TargetWeight { get; set; }   
     public int TargetDays { get; set; }  
     public int? CalorieDifference { get; set; }
          
     [ForeignKey("UserId")]
-    public User User { get; set; }
+    public User? User { get; set; }
+
+
+
+
+
+
+
 
 
     public double CalculateBMI()
-{
-    return Weight / Math.Pow(Height / 100, 2);
-}
+    {
+        return Weight / Math.Pow(Height / 100, 2);
+    }
 
 public string GetBMICategory(double bmi)
 {

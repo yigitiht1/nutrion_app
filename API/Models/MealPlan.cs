@@ -8,7 +8,7 @@ public class MealPlan
     public DateTime EndDate { get; set; }
     public List<PlannedMeal> PlannedMeals { get; set; } = new();
 
-    public User User { get; set; } 
+    public User? User { get; set; } 
 
     public ICollection<MealPlanItem> MealPlanItems { get; set; } = new List<MealPlanItem>();
 }

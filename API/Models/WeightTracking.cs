@@ -7,5 +7,5 @@ public class WeightTracking
     public double Weight { get; set; }
     public DateTime Date { get; set; }
 
-    public User User { get; set; } //ilişki
+    public User? User { get; set; } //ilişki
 }

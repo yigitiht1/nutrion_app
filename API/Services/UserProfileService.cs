@@ -38,7 +38,8 @@ namespace API.Services
         public async Task UpdateUserProfileAsync(int userId, UserProfileDto dto)
         {
             var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
-            if (userProfile == null) {
+            if (userProfile == null)
+            {
                 Console.WriteLine("UserProfile bulunamadı.");
                 return;
             }
@@ -51,5 +52,6 @@ namespace API.Services
             var changes = await _context.SaveChangesAsync();
             Console.WriteLine($"{changes} kayıt güncellendi.");
         }
+        
     }
 }

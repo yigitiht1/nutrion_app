@@ -47,23 +47,41 @@ public class FoodService : IFoodService
             MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
         }).ToList();
     }
-   public async Task<List<FoodDto>> GetFoodsByMealTypeAsync(MealType mealType)
-{
-    var foods = await _context.FoodMealTypes
-        .Include(fmt => fmt.Food)
-        .Where(fmt => fmt.MealType == mealType)
-        .Select(fmt => fmt.Food)
-        .ToListAsync();
-
-    return foods.Select(f => new FoodDto
+    public async Task<List<FoodDto>> GetFoodsByMealTypeAsync(MealType mealType)
     {
-        Name = f.Name,
-        Calories = f.Calories,
-        Protein = f.Protein,
-        Carbs = f.Carbs,
-        Fat = f.Fat,
-        MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
-    }).ToList();
+        var foods = await _context.FoodMealTypes
+            .Include(fmt => fmt.Food)
+            .Where(fmt => fmt.MealType == mealType)
+            .Select(fmt => fmt.Food)
+            .ToListAsync();
+
+        return foods.Select(f => new FoodDto
+        {
+            Name = f.Name,
+            Calories = f.Calories,
+            Protein = f.Protein,
+            Carbs = f.Carbs,
+            Fat = f.Fat,
+            MealTypes = f.FoodMealTypes.Select(m => m.MealType).ToList()
+        }).ToList();
+    }
+public async Task<bool> DeleteFoodAsync(string name)
+{
+    var food = await _context.Foods
+        .Include(f => f.FoodMealTypes)
+        .FirstOrDefaultAsync(f => f.Name.ToLower() == name.ToLower());
+
+    if (food == null)
+        return false;
+
+
+    _context.FoodMealTypes.RemoveRange(food.FoodMealTypes);
+
+ 
+    _context.Foods.Remove(food);
+
+    await _context.SaveChangesAsync();
+    return true;
 }
 
    
